@@ -1,0 +1,15 @@
+{
+//-------- Remote VSCode configuration --------
+
+// Port number to use for connection.
+"remote.port": 52698,
+
+// Launch the server on start up.
+"remote.onstartup": false,
+
+ // Columns at which to show vertical rulers
+"editor.rulers": [
+    80
+],
+"window.zoomLevel": 0
+}
