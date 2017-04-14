@@ -11,5 +11,27 @@
 "editor.rulers": [
     80
 ],
-"window.zoomLevel": 0
+"window.zoomLevel": 0,
+
+  // Controls how the editor should render whitespace characters, possibilities are 'none', 'boundary', and 'all'. The 'boundary' option does not render single spaces between words.
+  "editor.renderWhitespace": "all",
+  // When opening a file, `editor.tabSize` and `editor.insertSpaces` will be detected based on the file contents.
+"editor.detectIndentation": false,
+"latex-workshop.chktex.enabled": true,
+"latex-workshop.chktex.interval": 3000,
+"sync.gist": "28ded2ff59d2946f0367b2452e4c7350",
+"sync.lastUpload": "2017-10-03T04:04:54.093Z",
+"sync.autoDownload": false,
+"sync.autoUpload": false,
+"sync.lastDownload": "",
+"sync.forceDownload": false,
+"sync.anonymousGist": false,
+"sync.host": "",
+"sync.pathPrefix": "",
+"sync.quietSync": false,
+"sync.askGistName": false,
+"python.linting.pylintPath": "C:/Python36/Scripts/pylint",
+"cSpell.userWords": [
+    "assistive"
+]
 }
