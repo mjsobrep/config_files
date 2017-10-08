@@ -122,9 +122,11 @@ fi
 source ~/git/config_files/linux/posh-git/git-prompt.sh
 Color_Off="\[\033[0m\]"
 Yellow="\[\033[0;33m\]"
-# Add posh git and virtualenv to prompt
-PROMPT_COMMAND='__posh_git_ps1 "${VIRTUAL_ENV:+[$Yellow`basename $VIRTUAL_ENV`$Color_Off] }""\u@\h:\w" "\\\$ ";'$PROMPT_COMMAND
+Green="\[\033[0;32m\]" 
+Cyan="\[\033[0;36m\]"
 
+# Add posh git and virtualenv to prompt
+PROMPT_COMMAND='__posh_git_ps1 "${VIRTUAL_ENV:+[$Yellow`basename $VIRTUAL_ENV`$Color_Off] }""\[\033[0;32m\]\u@\h$\[\033[0m\]:\[\033[0;36m\]\w\[\033[0m\]" "\\\$\n~> ";'$PROMPT_COMMAND
 
 
 
