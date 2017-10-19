@@ -119,7 +119,7 @@ fi
 ################### 
 
 #load posh git
-source ~/git/config_files/linux/posh-git/git-prompt.sh
+source ~/Documents/git/config_files/linux/posh-git/git-prompt.sh
 Color_Off="\[\033[0m\]"
 Yellow="\[\033[0;33m\]"
 Green="\[\033[0;32m\]" 
@@ -136,3 +136,4 @@ PROMPT_COMMAND='__posh_git_ps1 "${VIRTUAL_ENV:+[$Yellow`basename $VIRTUAL_ENV`$C
 source /opt/ros/kinetic/setup.bash
 source ~/cartogropher_ws/install_isolated/setup.bash
 source ~/catkin_ws/devel/setup.bash
+source ~/cartogropher_ws/install_isolated/setup.bash
