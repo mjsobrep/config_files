@@ -136,4 +136,3 @@ PROMPT_COMMAND='__posh_git_ps1 "${VIRTUAL_ENV:+[$Yellow`basename $VIRTUAL_ENV`$C
 source /opt/ros/kinetic/setup.bash
 source ~/cartogropher_ws/install_isolated/setup.bash
 source ~/catkin_ws/devel/setup.bash
-source ~/cartogropher_ws/install_isolated/setup.bash
