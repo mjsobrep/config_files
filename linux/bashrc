@@ -133,6 +133,8 @@ PROMPT_COMMAND='__posh_git_ps1 "${VIRTUAL_ENV:+[$Yellow`basename $VIRTUAL_ENV`$C
 # load autojump
 . /usr/share/autojump/autojump.sh
 
+alias r3='ssh -R 52698:localhost:52698 sr3@158.130.191.68' # ssh into robot
+
 source /opt/ros/kinetic/setup.bash
 source ~/cartogropher_ws/install_isolated/setup.bash
 source ~/catkin_ws/devel/setup.bash
