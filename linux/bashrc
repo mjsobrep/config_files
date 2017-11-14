@@ -155,6 +155,7 @@ function connect_to_robot {
     fi
 }
 
+connect_to_robot 0
 source /opt/ros/kinetic/setup.bash
 source ~/cartogropher_ws/install_isolated/setup.bash
 source ~/catkin_ws/devel/setup.bash
