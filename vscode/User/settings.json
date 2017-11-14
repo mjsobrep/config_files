@@ -32,6 +32,9 @@
 "sync.askGistName": false,
 "python.linting.pylintPath": "C:/Python36/Scripts/pylint",
 "cSpell.userWords": [
-    "assistive"
+    "assistive",
+    "impactful",
+    "mentorship",
+    "telepresence"
 ]
 }
