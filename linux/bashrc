@@ -140,6 +140,9 @@ function ifip { /sbin/ifconfig $1 | grep "inet addr" | awk -F: '{print $2}' |awk
 export ROS_IP=`ifip wlp3s0`
 
 function connect_to_robot {
+    source /opt/ros/kinetic/setup.bash
+    source ~/cartogropher_ws/install_isolated/setup.bash
+    source ~/catkin_ws/devel/setup.bash
     # takes a single number arg representing the robot
     if (( $1 == 3 ))
     then 
@@ -155,6 +158,3 @@ function connect_to_robot {
     fi
 }
 
-source /opt/ros/kinetic/setup.bash
-source ~/cartogropher_ws/install_isolated/setup.bash
-source ~/catkin_ws/devel/setup.bash
