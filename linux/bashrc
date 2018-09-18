@@ -140,6 +140,7 @@ function ifip { /sbin/ifconfig $1 | grep "inet addr" | awk -F: '{print $2}' |awk
 export ROS_IP=`ifip wlp3s0`
 
 function connect_to_robot {
+    echo "setting up for $1"
     source /opt/ros/kinetic/setup.bash
     source ~/cartogropher_ws/install_isolated/setup.bash
     source ~/catkin_ws/devel/setup.bash
@@ -148,13 +149,23 @@ function connect_to_robot {
     then 
         export ROS_MASTER_URI=http://158.130.191.68:11311 # sr3
         ssh -R 52698:localhost:52698 sr3@158.130.191.68
+        echo "connected to sr3"
     elif (( $1 == 4 ))
     then
         export ROS_MASTER_URI=http://158.130.191.69:11311 # sr4
         ssh -R 52698:localhost:52698 servicerobot4@158.130.191.69
+        echo "connected to sr4"
+    elif [ "$1" = "nao" ]
+    then
+        export PYTHONPATH="${PYTHONPATH}:/home/mjsobrep/Downloads/pynaoqi-python2.7-2.1.4.13-linux64"
+        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/home/mjsobrep/Downloads/pynaoqi-python2.7-2.1.4.13-linux64"
+        echo "added naoqi to python path"
     elif (( $1 == 0 ))
     then
         export ROS_MASTER_URI=http://localhost:11311
+        echo "connected to local machine"
     fi
+    echo "done setting up ros"
 }
 
+export PATH="$PATH:/home/mjsobrep/texlive/2018/bin/x86_64-linux"
