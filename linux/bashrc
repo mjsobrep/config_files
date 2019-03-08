@@ -128,7 +128,7 @@ Cyan="\[\033[0;36m\]"
 # Add posh git and virtualenv to prompt
 PROMPT_COMMAND='__posh_git_ps1 "${VIRTUAL_ENV:+[$Yellow`basename $VIRTUAL_ENV`$Color_Off] }""\[\033[0;32m\]\u@\h$\[\033[0m\]:\[\033[0;36m\]\w\[\033[0m\]" "\\\$\n~> ";'$PROMPT_COMMAND
 
-
+[[ -n "$DISPLAY" && "$TERM" = "xterm" ]] && export TERM=xterm-256color
 
 # load autojump
 . /usr/share/autojump/autojump.sh
@@ -167,6 +167,14 @@ function connect_to_robot {
     then
         export ROS_MASTER_URI=http://192.168.1.10:11311
         echo "added nuc as master uri"
+    elif [ "$1" = "kq" ]
+    then
+        export ROS_MASTER_URI=http://192.168.1.24:11311
+        echo "added kendal's computer as master uri"
+    elif [ "$1" = "x220" ]
+    then
+        export ROS_MASTER_URI=http://192.168.1.20:11311
+        echo "added Lenovo X220T as master uri"
     elif (( $1 == 0 ))
     then
         export ROS_MASTER_URI=http://localhost:11311
