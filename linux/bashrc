@@ -184,3 +184,5 @@ function connect_to_robot {
 }
 
 
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
