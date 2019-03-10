@@ -22,3 +22,9 @@ you may need to change the binary location in the init.vim file
 
 ## Powerline symbols:
 sudo apt install fonts-powerline
+
+## Remote access to open files:
+pip3 install neovim-remote -u
+
+## Silver searcher
+sudo apt install silversearcher-ag

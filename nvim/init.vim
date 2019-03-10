@@ -7,7 +7,7 @@ let &packpath = &runtimepath
 """""""""""" PLUGINS """""""""""
 " Remember to run `:PlugInstall` after adding new ones
 call plug#begin('~/.local/share/nvim/plugged')
-Plug 'scrooloose/nerdtree', {'on':'NERDTeeToggle'} " allows a filetree on the side, loaded the first time it is used
+Plug 'scrooloose/nerdtree' ", {'on':'NERDTeeToggle'}  allows a filetree on the side, loaded the first time it is used
 Plug 'Xuyuanp/nerdtree-git-plugin' " Adds git info to nerdtree
 " airline
 " fzif
@@ -21,11 +21,15 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'majutsushi/tagbar'
 " Plug lervag/vimtex "tex for vim, needs more investigation. Best option?
 Plug 'edkolev/tmuxline.vim' " Puts vim statusline onto tmux statusline
+Plug 'Yggdroot/indentLine' " Plugs little lines in for indentation
+Plug 'ayu-theme/ayu-vim' " A color scheme
+
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
 set mouse=a
-
 
 set showmatch " highlight matching brackets
 set number " show line numbers
@@ -44,7 +48,11 @@ nnoremap ; :
 
 :set hidden " allows you to move from a buffer without saving it. 
 
+:let mapleader = "'" "changing the leader key
+
 """ Searching
+set ignorecase " ignore case
+set smartcase " pat attention to case if any caps present
 " Use <C-L> to clear the highlighting of :set hlsearch.
 if maparg('<C-L>', 'n') ==# ''
   nnoremap <silent> <C-L> :nohlsearch<CR><C-L>
@@ -71,11 +79,32 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isT
 " Nerdtree shortcut:
 map <C-n> :NERDTreeToggle<CR>
 
-""""""""""" airline settings """""""""""""
-let g:airline#extensions#tabline#enabled = 1 " Allows airline to show open buffers if there is only one tab
-let g:airline_theme='simple' " Need to explore themes more
 
 """""""""" Tagbar settings """""""""""""""
 nmap <F8> :TagbarToggle<CR>
 let g:tagbar_ctags_bin='/usr/local/bin/ctags'
 
+"""""""""" Making it look good """""""""""
+
+""" airline settings
+let g:airline#extensions#tabline#enabled = 1 " Allows airline to show open buffers if there is only one tab
+let g:airline_theme='simple' " Need to explore themes more
+
+""" True colors
+set termguicolors
+
+""" load in color schem
+let ayucolor='dark'
+colorscheme ayu
+
+""" indent guides
+let g:indentLine_setColors = 0
+
+
+""""""""" Easier navigation """""""""""
+" all using fzf
+nnoremap <Leader>o :Files<CR>
+nnoremap <Leader>s :Ag<CR>
+nnoremap <Leader>b :Buffers<CR>
+nnoremap <Leader>m :Marks<CR>
+"explore using for fuzzy finding
