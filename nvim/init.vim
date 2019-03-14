@@ -26,6 +26,7 @@ Plug 'ayu-theme/ayu-vim' " A color scheme
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
+Plug 'christoomey/vim-tmux-navigator'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -54,9 +55,9 @@ nnoremap ; :
 set ignorecase " ignore case
 set smartcase " pat attention to case if any caps present
 " Use <C-L> to clear the highlighting of :set hlsearch.
-if maparg('<C-L>', 'n') ==# ''
-  nnoremap <silent> <C-L> :nohlsearch<CR><C-L>
-endif
+" if maparg('<C-L>', 'n') ==# ''
+"   nnoremap <silent> <C-L> :nohlsearch<CR><C-L>
+" endif
 
 """ Moving through buffers
 :nnoremap <Tab> :bnext<CR>
@@ -108,3 +109,9 @@ nnoremap <Leader>s :Ag<CR>
 nnoremap <Leader>b :Buffers<CR>
 nnoremap <Leader>m :Marks<CR>
 "explore using for fuzzy finding
+
+""""""""" Easier pane nav """"""""""""
+map <C-h> <C-W>h
+map <C-j> <C-W>j
+map <C-k> <C-W>k
+map <C-l> <C-W>l
