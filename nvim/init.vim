@@ -115,3 +115,14 @@ map <C-h> <C-W>h
 map <C-j> <C-W>j
 map <C-k> <C-W>k
 map <C-l> <C-W>l
+
+""""""""" NVR """""""""""
+"" Set nvr for git commits and the like
+if has('nvim')
+    let $GIT_EDITOR = 'nvr -cc split --remote-wait'
+endif
+" if doing a git commit, auto close buffer
+autocmd FileType gitcommit set bufhidden=delete
+
+" to use from regular shell: `git config --global core.editor 'nvr
+" --remote-wait-silent'`
