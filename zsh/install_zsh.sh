@@ -1,5 +1,5 @@
 sudo apt install zsh
-sudo chsh -s $(which zsh)
+chsh -s $(which zsh)
 
 # pull down antigen somewhere, lets say to `~`:
 curl -L git.io/antigen > ~/antigen.zsh
