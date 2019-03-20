@@ -8,4 +8,4 @@ curl -L git.io/antigen > ~/antigen.zsh
 sudo apt install ttf-ancient-fonts
 
 # Link in the config file here:
-ln -s ~/Documents/git/config_files/zsh/.zshrc ~/.zshrc 
+ln -s ~/Documents/git/config_files/zsh/zshrc ~/.zshrc 
