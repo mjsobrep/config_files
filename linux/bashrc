@@ -157,8 +157,8 @@ function connect_to_robot {
         echo "connected to sr4"
     elif [ "$1" = "nao" ]
     then
-        export PYTHONPATH="${PYTHONPATH}:/home/mjsobrep/Downloads/pynaoqi-python2.7-2.1.4.13-linux64"
-        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/home/mjsobrep/Downloads/pynaoqi-python2.7-2.1.4.13-linux64"
+        export PYTHONPATH="~/naoqi/pynaoqi-python2.7-2.1.4.13-linux64:$PYTHONPATH"
+        export LD_LIBRARY_PATH="~/naoqi/pynaoqi-python2.7-2.1.4.13-linux64:${LD_LIBRARY_PATH}"
         echo "added naoqi to python path"
     elif (( $1 == 0 ))
     then
@@ -169,3 +169,6 @@ function connect_to_robot {
 }
 
 export PATH="$PATH:/home/mjsobrep/texlive/2018/bin/x86_64-linux"
+
+source ~/.bin/tmuxinator.bash
+export EDITOR='code'
