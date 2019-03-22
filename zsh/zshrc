@@ -14,6 +14,9 @@ antigen apply
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+## put in fasd hooks:
+eval "$(fasd --init auto)"
+
 
 ####### Bullet Train #########
 BULLETTRAIN_PROMPT_ADD_NEWLINE=false
