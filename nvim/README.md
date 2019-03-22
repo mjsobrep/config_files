@@ -28,3 +28,16 @@ pip3 install neovim-remote -u
 
 ## Silver searcher
 sudo apt install silversearcher-ag
+
+## Color schemes:
+To try:
+- [papercolor](https://github.com/NLKNguyen/papercolor-theme)
+- [onehalf](https://github.com/sonph/onehalf)
+- [gruvbox](https://github.com/morhetz/gruvbox)
+
+Tried:
+---------------------
+| Name | thoughts |
+-------------------
+| Ayu | Ok, there is too much orange for me, especiallin in markdown and tex, the background isn't great. Can't figure out how to switch light to dark when working
+-------------------
