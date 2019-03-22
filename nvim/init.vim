@@ -22,7 +22,9 @@ Plug 'majutsushi/tagbar'
 " Plug lervag/vimtex "tex for vim, needs more investigation. Best option?
 Plug 'edkolev/tmuxline.vim' " Puts vim statusline onto tmux statusline
 Plug 'Yggdroot/indentLine' " Plugs little lines in for indentation
-Plug 'ayu-theme/ayu-vim' " A color scheme
+" Plug 'ayu-theme/ayu-vim' "  A color scheme
+" Plug 'NLKNguyen/papercolor-theme'
+Plug 'sonph/onehalf', {'rtp': 'vim/'}
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
@@ -89,14 +91,29 @@ let g:tagbar_ctags_bin='/usr/local/bin/ctags'
 
 """ airline settings
 let g:airline#extensions#tabline#enabled = 1 " Allows airline to show open buffers if there is only one tab
-let g:airline_theme='simple' " Need to explore themes more
+" let g:airline_theme='simple' " Need to explore themes more
 
 """ True colors
 set termguicolors
 
 """ load in color schem
-let ayucolor='dark'
-colorscheme ayu
+" let ayucolor='dark'
+" set background=dark
+colorscheme onehalfdark
+let g:airline_theme='onehalfdark'
+let g:color_mode = 'dark'
+
+function FlipColor()
+    if g:color_mode=='dark'
+        colorscheme onehalflight
+        let g:airline_theme='onehalflight'
+        let g:color_mode='light'
+    elseif g:color_mode=='light'
+        colorscheme onehalfdark
+        let g:airline_theme='onehalfdark'
+        let g:color_mode='dark'
+    endif
+endfunction
 
 """ indent guides
 let g:indentLine_setColors = 0
