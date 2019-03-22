@@ -1,4 +1,8 @@
+set -e
+
 sudo apt-get update -y && sudo apt-get upgrade -y
+
+sudo apt install git curl
 
 # fasd for fast jumping and searching
 sudo add-apt-repository ppa:aacebedo/fasd

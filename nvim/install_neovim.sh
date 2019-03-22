@@ -1,3 +1,4 @@
+set -e
 
 # Instal neovim
 sudo apt-get install software-properties-common

@@ -1,3 +1,5 @@
+set -e
+
 sudo apt remove tmux
 
 sudo apt install libevent-dev
