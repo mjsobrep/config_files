@@ -115,6 +115,8 @@ function FlipColor()
     endif
 endfunction
 
+command ToggleColor call FlipColor()
+
 """ indent guides
 let g:indentLine_setColors = 0
 
