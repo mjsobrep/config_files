@@ -29,6 +29,8 @@ Plug 'sonph/onehalf', {'rtp': 'vim/'}
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'christoomey/vim-tmux-navigator'
+
+Plug 'lervag/vimtex'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -51,7 +53,7 @@ nnoremap ; :
 
 :set hidden " allows you to move from a buffer without saving it. 
 
-:let mapleader = "'" "changing the leader key
+" :let mapleader = "'" "changing the leader key
 
 """ Searching
 set ignorecase " ignore case
@@ -145,3 +147,7 @@ autocmd FileType gitcommit set bufhidden=delete
 
 " to use from regular shell: `git config --global core.editor 'nvr
 " --remote-wait-silent'`
+
+"""""" LaTeX """""""""""""
+let g:vimtex_compiler_progname = 'nvr'
+let g:vimtex_view_method = 'zathura'
