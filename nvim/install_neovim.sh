@@ -34,3 +34,7 @@ pip3 install --user neovim-remote
 
 #silver searcher
 sudo apt install silversearcher-ag
+
+# tex dependencies
+# sudo apt install texlive-full
+sudo apt install xdotool
