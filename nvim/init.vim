@@ -4,6 +4,10 @@ let &packpath = &runtimepath
 
 " TODO: add python path maybe look at :help python-provider
 
+"changing the leader key
+let mapleader = "'" 
+
+
 """""""""""" PLUGINS """""""""""
 " Remember to run `:PlugInstall` after adding new ones
 call plug#begin('~/.local/share/nvim/plugged')
@@ -31,6 +35,8 @@ Plug 'junegunn/fzf.vim'
 Plug 'christoomey/vim-tmux-navigator'
 
 Plug 'lervag/vimtex'
+
+Plug 'scrooloose/nerdcommenter'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -53,7 +59,6 @@ nnoremap ; :
 
 :set hidden " allows you to move from a buffer without saving it. 
 
-" :let mapleader = "'" "changing the leader key
 
 """ Searching
 set ignorecase " ignore case
@@ -105,7 +110,7 @@ colorscheme onehalfdark
 let g:airline_theme='onehalfdark'
 let g:color_mode = 'dark'
 
-function FlipColor()
+function! FlipColor()
     if g:color_mode=='dark'
         colorscheme onehalflight
         let g:airline_theme='onehalflight'
@@ -117,7 +122,7 @@ function FlipColor()
     endif
 endfunction
 
-command ToggleColor call FlipColor()
+command! ToggleColor call FlipColor()
 
 """ indent guides
 let g:indentLine_setColors = 0
@@ -151,3 +156,7 @@ autocmd FileType gitcommit set bufhidden=delete
 """""" LaTeX """""""""""""
 let g:vimtex_compiler_progname = 'nvr'
 let g:vimtex_view_method = 'zathura'
+
+"""""" Commmenting """"""
+" this is needed for nerd commenter to know what is up:
+filetype plugin on
