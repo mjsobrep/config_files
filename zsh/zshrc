@@ -39,3 +39,11 @@ BULLETTRAIN_CONTEXT_DEFAULT_USER='mjsobrep'
 
 ###### ROS Support ######
 
+###### Adding Tex to Path #####
+path+=('/usr/local/texlive/2018/bin/x86_64-linux')
+manpath+=('/usr/local/texlive/2018/texmf-dist/doc/man')
+infopath+=('/usr/local/texlive/2018/texmf-dist/doc/info')
+export PATH
+export MANPATH
+export INFOPATH
+
