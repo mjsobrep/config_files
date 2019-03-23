@@ -3,6 +3,9 @@
 ## Install
 Follow [instructions](https://github.com/neovim/neovim/wiki/Installing-Neovim#ubuntu)
 
+Need Tex. It is best to not use ubuntu for that. Install it [here](http://tug.org/texlive/acquire-netinstall.html)
+You should setup folders like [this](https://askubuntu.com/questions/657535/facing-a-problem-while-installing-latex-from-terminal) to work with it 
+
 ## What terminal emulator should I use?
 - Ubuntu Terminal : OK
 - Terminator : BAD
@@ -41,3 +44,4 @@ Tried:
 -------------------
 | Ayu | Ok, there is too much orange for me, especiallin in markdown and tex, the background isn't great. Can't figure out how to switch light to dark when working
 -------------------
+
