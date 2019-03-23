@@ -38,3 +38,4 @@ sudo apt install silversearcher-ag
 # tex dependencies
 # sudo apt install texlive-full
 sudo apt install xdotool
+sudo apt install zathura
