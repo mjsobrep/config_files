@@ -28,7 +28,8 @@ Plug 'edkolev/tmuxline.vim' " Puts vim statusline onto tmux statusline
 Plug 'Yggdroot/indentLine' " Plugs little lines in for indentation
 " Plug 'ayu-theme/ayu-vim' "  A color scheme
 " Plug 'NLKNguyen/papercolor-theme'
-Plug 'sonph/onehalf', {'rtp': 'vim/'}
+"Plug 'sonph/onehalf', {'rtp': 'vim/'}
+Plug 'NLKNguyen/papercolor-theme'
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
@@ -106,24 +107,30 @@ set termguicolors
 """ load in color schem
 " let ayucolor='dark'
 " set background=dark
-colorscheme onehalfdark
-let g:airline_theme='onehalfdark'
-let g:color_mode = 'dark'
+"colorscheme onehalfdark
+"let g:airline_theme='onehalfdark'
+"let g:color_mode = 'dark'
 
-function! FlipColor()
-    if g:color_mode=='dark'
-        colorscheme onehalflight
-        let g:airline_theme='onehalflight'
-        let g:color_mode='light'
-    elseif g:color_mode=='light'
-        colorscheme onehalfdark
-        let g:airline_theme='onehalfdark'
-        let g:color_mode='dark'
-    endif
-endfunction
+"colorscheme onehalflight
+"let g:airline_theme='onehalflight'
+"let g:color_mode = 'light'
 
-command! ToggleColor call FlipColor()
+"function! FlipColor()
+    "if g:color_mode=='dark'
+        "colorscheme onehalflight
+        ""let g:airline_theme='onehalflight'
+        "let g:color_mode='light'
+    "elseif g:color_mode=='light'
+        "colorscheme onehalfdark
+        ""let g:airline_theme='onehalfdark'
+        "let g:color_mode='dark'
+    "endif
+"endfunction
 
+"command! ToggleColor call FlipColor()
+
+set background=dark
+colorscheme PaperColor
 """ indent guides
 let g:indentLine_setColors = 0
 
