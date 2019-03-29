@@ -43,6 +43,9 @@ BULLETTRAIN_CONTEXT_DEFAULT_USER='mjsobrep'
 path+=('/usr/local/texlive/2018/bin/x86_64-linux')
 manpath+=('/usr/local/texlive/2018/texmf-dist/doc/man')
 infopath+=('/usr/local/texlive/2018/texmf-dist/doc/info')
+
+#### Adding NVR to path ####
+path+=('/home/mjsobrep/.local/bin')
 export PATH
 export MANPATH
 export INFOPATH
