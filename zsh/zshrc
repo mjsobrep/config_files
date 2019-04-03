@@ -38,6 +38,41 @@ BULLETTRAIN_CONTEXT_DEFAULT_USER='mjsobrep'
 ###### Trying to autoload keyboard mods #######
 
 ###### ROS Support ######
+function ifip { /sbin/ifconfig $1 | grep "inet addr" | awk -F: '{print $2}' |awk '{print $1}'; }
+
+case $(hostname) in 
+    linPower)
+        export ROS_IP=`ifip enp0s31f6`;;
+    *)
+        echo "unknown system";;
+esac
+
+function connect_to_robot {
+    echo "setting up for $1"
+    source /opt/ros/kinetic/setup.zsh
+    source ~/catkin_ws/devel/setup.zsh
+
+    # takes a single number arg representing the robot
+    if [ "$1" = "flo" ]
+    then
+        export ROS_MASTER_URI=http://192.168.1.10:11311
+        echo "added nuc as master uri"
+    elif [ "$1" = "kq" ]
+    then
+        export ROS_MASTER_URI=http://192.168.1.24:11311
+        echo "added kendal's computer as master uri"
+    elif [ "$1" = "x220" ]
+    then
+        export ROS_MASTER_URI=http://192.168.1.20:11311
+        echo "added Lenovo X220T as master uri"
+    elif (( $1 == 0 ))
+    then
+        export ROS_MASTER_URI=http://localhost:11311
+        echo "connected to local machine"
+    fi
+    echo "done setting up ros"
+}
+
 
 ###### Adding Tex to Path #####
 path+=('/usr/local/texlive/2018/bin/x86_64-linux')
