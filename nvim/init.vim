@@ -40,6 +40,7 @@ Plug 'lervag/vimtex'
 Plug 'scrooloose/nerdcommenter'
 
 Plug 'Valloric/YouCompleteMe'
+"TODO: Try out Jedi-vim and ncm2;q
 
 "Plug 'taketwo/vim-ros' doesn't work with modern stuff
 call plug#end()
