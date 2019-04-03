@@ -172,3 +172,18 @@ let g:vimtex_view_method = 'zathura'
 """""" Commmenting """"""
 " this is needed for nerd commenter to know what is up:
 filetype plugin on
+
+"""""" spelling """"""
+let g:spelling_state = 'off'
+
+function! FlipSpelling()
+    if g:spelling_state=='off'
+        set spell spelllang=en_us
+        let g:spelling_state = 'on'
+    elseif g:spelling_state=='on'
+        set nospell
+        let g:spelling_state = 'off'
+    endif
+endfunction
+
+command! ToggleSpelling call FlipSpelling()
