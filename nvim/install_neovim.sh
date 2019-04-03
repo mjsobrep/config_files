@@ -39,3 +39,9 @@ sudo apt install silversearcher-ag
 # sudo apt install texlive-full
 sudo apt install xdotool
 sudo apt install zathura
+
+# hop into vim and install everything
+nvim +PlugInstall +qall > /dev/null
+
+# finish you complete me setup
+python3 ~/.local/share/nvim/plugged/YouCompleteMe/install.py --clang-completer

@@ -38,6 +38,10 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'lervag/vimtex'
 
 Plug 'scrooloose/nerdcommenter'
+
+Plug 'Valloric/YouCompleteMe'
+
+"Plug 'taketwo/vim-ros' doesn't work with modern stuff
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
