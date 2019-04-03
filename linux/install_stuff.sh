@@ -2,13 +2,15 @@ set -e
 
 sudo apt-get update -y && sudo apt-get upgrade -y
 
-sudo apt install git curl
+sudo apt install -y git curl 
 
 # fasd for fast jumping and searching
-sudo add-apt-repository ppa:aacebedo/fasd
-sudo apt-get update
-sudo apt-get install fasd
+sudo add-apt-repository -y ppa:aacebedo/fasd
+sudo apt-get update -y
+sudo apt-get install -y fasd
 
 ./zsh/install_zsh.sh 
 ./nvim/install_neovim.sh 
 ./tmux/install_tmux.sh
+
+sudo apt autoremove -y

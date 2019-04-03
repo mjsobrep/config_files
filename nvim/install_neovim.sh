@@ -1,15 +1,15 @@
 set -e
 
 # Instal neovim
-sudo apt-get install software-properties-common
-sudo add-apt-repository ppa:neovim-ppa/stable
-sudo apt-get update
-sudo apt-get install neovim
-sudo apt-get install python-dev python-pip python3-dev python3-pip
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository -y ppa:neovim-ppa/stable
+sudo apt-get update -y
+sudo apt-get install -y neovim
+sudo apt-get install -y python-dev python-pip python3-dev python3-pip
 
 # bring in neovim config
-mkdir ~/.config/nvim
-ln -s ~/Documents/git/config_files/nvim/init.vim ~/.config/nvim/init.vim
+mkdir -p ~/.config/nvim
+ln -s -f ~/Documents/git/config_files/nvim/init.vim ~/.config/nvim/init.vim
 
 # install vim plug
 curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
@@ -24,21 +24,22 @@ cd ctags
 ./configure
 make
 sudo make install
+cd ..
+rm -rf ctags
 cd $prior
 
 # powerline fonts
-sudo apt install fonts-powerline
+sudo apt install -y fonts-powerline
 
 # vim remote
 pip3 install --user neovim-remote
 
 #silver searcher
-sudo apt install silversearcher-ag
+sudo apt install -y silversearcher-ag
 
 # tex dependencies
 # sudo apt install texlive-full
-sudo apt install xdotool
-sudo apt install zathura
+sudo apt install -y xdotool zathura
 
 # hop into vim and install everything
 nvim +PlugInstall +qall > /dev/null
