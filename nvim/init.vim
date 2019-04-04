@@ -5,7 +5,7 @@ let &packpath = &runtimepath
 " TODO: add python path maybe look at :help python-provider
 
 "changing the leader key
-let mapleader = "'" 
+let mapleader = "'"
 
 
 """""""""""" PLUGINS """""""""""
@@ -42,7 +42,8 @@ Plug 'scrooloose/nerdcommenter'
 Plug 'Valloric/YouCompleteMe'
 "TODO: Try out Jedi-vim and ncm2;q
 
-"Plug 'taketwo/vim-ros' doesn't work with modern stuff
+"Plug 'taketwo/vim-ros' " doesn't work with modern vim, needs python2
+Plug 'heavenshell/vim-pydocstring'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -58,12 +59,12 @@ set expandtab " use spaces instead of tabs
 set splitbelow
 set splitright
 
-" set rnu " turns on relative numbering 
+" set rnu " turns on relative numbering
 
 " use ; for :
 nnoremap ; :
 
-:set hidden " allows you to move from a buffer without saving it. 
+:set hidden " allows you to move from a buffer without saving it.
 
 
 """ Searching
@@ -173,6 +174,12 @@ let g:vimtex_view_method = 'zathura'
 " this is needed for nerd commenter to know what is up:
 filetype plugin on
 
+au BufNewFile,BufRead *.launch setf launch
+
+    let g:NERDCustomDelimiters = {
+        \ 'launch': { 'left': '<!--', 'right': '-->' },
+    \ }
+
 """""" spelling """"""
 let g:spelling_state = 'off'
 
@@ -187,3 +194,13 @@ function! FlipSpelling()
 endfunction
 
 command! ToggleSpelling call FlipSpelling()
+
+""""" Linting with ale """"'
+let g:ale_fix_on_save = 1
+let g:ale_fixers = {
+            \ '*': ['remove_trailing_lines', 'trim_whitespace'],
+            \ 'python': ['autopep8'],
+            \}
+let g:ale_linters = {
+            \'python':['flake'],
+            \}
