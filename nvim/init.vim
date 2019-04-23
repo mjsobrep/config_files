@@ -25,7 +25,8 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'majutsushi/tagbar'
 " Plug lervag/vimtex "tex for vim, needs more investigation. Best option?
 Plug 'edkolev/tmuxline.vim' " Puts vim statusline onto tmux statusline
-Plug 'Yggdroot/indentLine' " Plugs little lines in for indentation
+"Plug 'Yggdroot/indentLine' " Plugs little lines in for indentation requires
+"conceal line, which generally screws up a lot of other stuff
 " Plug 'ayu-theme/ayu-vim' "  A color scheme
 " Plug 'NLKNguyen/papercolor-theme'
 "Plug 'sonph/onehalf', {'rtp': 'vim/'}
@@ -204,3 +205,6 @@ let g:ale_fixers = {
 let g:ale_linters = {
             \'python':['flake'],
             \}
+
+""""" Py Doc Sting """""
+nmap <silent> <Leader-d> <Plug>(pydocstring)
