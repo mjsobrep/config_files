@@ -40,7 +40,7 @@ BULLETTRAIN_CONTEXT_DEFAULT_USER='mjsobrep'
 ###### ROS Support ######
 function ifip { /sbin/ifconfig $1 | grep "inet addr" | awk -F: '{print $2}' |awk '{print $1}'; }
 
-case $(hostname) in 
+case $(hostname) in
     linPower)
         export ROS_IP=`ifip enp0s31f6`;;
     lubuntu-x220t)
@@ -87,3 +87,14 @@ export PATH
 export MANPATH
 export INFOPATH
 
+#### Getting keyboard stuff to work ####
+#xmodmap ~/.Xmodmap
+#numlockx on
+#
+
+## Ruby
+#export GEM_HOME="$HOME/gems"
+#export PATH="$HOME/gems/bin:$PATH"
+
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"
