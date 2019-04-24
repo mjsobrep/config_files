@@ -203,8 +203,15 @@ let g:ale_fixers = {
             \ 'python': ['autopep8'],
             \}
 let g:ale_linters = {
-            \'python':['flake'],
+            \'python':['flake','pylint'],
             \}
 
 """"" Py Doc Sting """""
 nmap <silent> <Leader-d> <Plug>(pydocstring)
+
+
+""""" Tag setup """""
+"" Use ctrl-] to jump to a definition
+"set tags=~/mytags
+
+" generate new tags: ctags -R
