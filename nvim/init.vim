@@ -206,6 +206,9 @@ let g:ale_linters = {
             \'python':['flake','pylint'],
             \}
 
+nmap <silent> <leader>a :ALENext<cr>
+nmap <silent> <leader>A :ALEPrevious<cr>
+
 """"" Py Doc Sting """""
 nmap <silent> <Leader-d> <Plug>(pydocstring)
 
