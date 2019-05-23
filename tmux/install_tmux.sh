@@ -5,6 +5,9 @@ sudo apt remove -y tmux
 sudo apt install -y libevent-dev libncurses5-dev libncursesw5-dev
 
 sudo apt install -y make autoconf automake pkg-config
+
+sudo apt install -y xclip
+
 prior=$(pwd)
 cd ~/Downloads
 wget https://github.com/tmux/tmux/releases/download/2.8/tmux-2.8.tar.gz
