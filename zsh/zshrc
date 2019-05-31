@@ -43,7 +43,7 @@ function ifip { /sbin/ifconfig $1 | grep "inet addr" | awk -F: '{print $2}' |awk
 case $(hostname) in
     linPower)
         export ROS_IP=`ifip enp0s31f6`;;
-    lubuntu-x220t)
+    x220t)
         export ROS_IP=`ifip wlp3s0`;;
     *)
         echo "unknown system";;
