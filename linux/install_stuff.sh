@@ -14,3 +14,5 @@ sudo apt-get install -y fasd
 ./tmux/install_tmux.sh
 
 sudo apt autoremove -y
+
+sudo reboot
