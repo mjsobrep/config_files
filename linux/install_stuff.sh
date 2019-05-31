@@ -2,7 +2,7 @@ set -e
 
 sudo apt-get update -y && sudo apt-get upgrade -y
 
-sudo apt install -y git curl 
+sudo apt install -y git curl build-essential autoconf cmake
 
 # fasd for fast jumping and searching
 sudo add-apt-repository -y ppa:aacebedo/fasd
