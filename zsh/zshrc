@@ -86,7 +86,6 @@ read year <<< $(ls /home/$USER/texlive | grep 20)
 path+=("/home/$USER/texlive/$year/bin/x86_64-linux")
 manpath+=("/home/$USER/texlive/$year/texmf-dist/doc/man")
 infopath+=("/home/$USER/texlive/$year/texmf-dist/doc/info")
-`
 
 #### Adding NVR to path ####
 path+=('/home/mjsobrep/.local/bin')
