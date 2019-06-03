@@ -77,9 +77,16 @@ function connect_to_robot {
 
 
 ###### Adding Tex to Path #####
+# If we used sudo to install:
 path+=('/usr/local/texlive/2018/bin/x86_64-linux')
 manpath+=('/usr/local/texlive/2018/texmf-dist/doc/man')
 infopath+=('/usr/local/texlive/2018/texmf-dist/doc/info')
+# If we did a user install (as done in the install script)
+read year <<< $(ls /home/$USER/texlive | grep 20)
+path+=("/home/$USER/texlive/$year/bin/x86_64-linux")
+manpath+=("/home/$USER/texlive/$year/texmf-dist/doc/man")
+infopath+=("/home/$USER/texlive/$year/texmf-dist/doc/info")
+`
 
 #### Adding NVR to path ####
 path+=('/home/mjsobrep/.local/bin')
