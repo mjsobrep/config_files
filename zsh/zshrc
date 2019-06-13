@@ -76,7 +76,7 @@ function connect_to_robot {
 }
 
 ########## SSH into flo
-function ssh_flo {
+function ssh-flo {
     ssh nuc-admin@flo-nuc
 }
 
