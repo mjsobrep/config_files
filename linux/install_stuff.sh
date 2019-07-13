@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -e
 
 sudo apt-get update -y && sudo apt-get upgrade -y
@@ -11,6 +13,7 @@ sudo apt-get install -y fasd
 
 ### LATEX ###
 prior=$(pwd)
+mkdir -p ~/Downloads
 cd ~/Downloads
 wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
 tar -xzf install-tl-unx.tar.gz
