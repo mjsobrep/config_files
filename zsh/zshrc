@@ -92,6 +92,19 @@ export INFOPATH
 #numlockx on
 #
 
+#### Using system clipboard ####
+yanktoclipboard(){
+    echo $BUFFER | xsel -i -b
+}
+pastefromclipboard(){
+    RBUFFER=$(xsel -o -b </dev/null)$RBUFFER
+}
+zle -N yanktoclipboard
+zle -N pastefromclipboard
+bindkey -a 'yy' yanktoclipboard
+bindkey -a 'p' pastefromclipboard
+
+
 ## Ruby
 #export GEM_HOME="$HOME/gems"
 #export PATH="$HOME/gems/bin:$PATH"
