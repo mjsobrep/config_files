@@ -116,6 +116,11 @@ bindkey -a 'yy' yanktoclipboard
 bindkey -a 'p' pastefromclipboard
 
 
+#### Set Text Editor ####
+export EDITOR='nvim'
+export VISUAL='nvim'
+
+
 ## Ruby
 #export GEM_HOME="$HOME/gems"
 #export PATH="$HOME/gems/bin:$PATH"
