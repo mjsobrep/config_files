@@ -221,3 +221,8 @@ nmap <silent> <Leader-d> <Plug>(pydocstring)
 "
 """"" Copy and past with system clipboard """"
 set clipboard=unnamedplus
+
+"""" Reload files from disk on change """"
+set autoread
+au CursorHold,CursorholdI * :checktime
+au FocusGained,BufEnter * :checktime
