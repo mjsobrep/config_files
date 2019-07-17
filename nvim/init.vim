@@ -218,3 +218,11 @@ nmap <silent> <Leader-d> <Plug>(pydocstring)
 "set tags=~/mytags
 
 " generate new tags: ctags -R
+"
+""""" Copy and past with system clipboard """"
+set clipboard=unnamedplus
+
+"""" Reload files from disk on change """"
+set autoread
+au CursorHold,CursorholdI * :checktime
+au FocusGained,BufEnter * :checktime

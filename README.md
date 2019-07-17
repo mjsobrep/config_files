@@ -1,10 +1,16 @@
 # config_files
 
 Start by installing linux, then git `sudo apt install -y git`
+
 Then setup a credential manager:
-`sudo apt-get install libgnome-keyring-dev`
-`sudo make --directory=/usr/share/doc/git/contrib/credential/gnome-keyring`
-`git config --global credential.helper /usr/share/doc/git/contrib/credential/gnome-keyring/git-credential-gnome-keyring`
+- `sudo apt-get install libgnome-keyring-dev`
+- `sudo make --directory=/usr/share/doc/git/contrib/credential/gnome-keyring`
+- `git config --global credential.helper /usr/share/doc/git/contrib/credential/gnome-keyring/git-credential-gnome-keyring`
+
+If you are on windows, then just install git and it works. 
+If you are in WSL, then install git in windows and type into wsl:
+`git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe"`
+
 Then get a new auth key from github MAKE SURE TO GET REPO PERMISSIONS. 
 
 To install on linux, pull this to ~/Documents/git/config_files
