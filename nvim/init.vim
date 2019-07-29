@@ -45,6 +45,8 @@ Plug 'Valloric/YouCompleteMe'
 
 "Plug 'taketwo/vim-ros' " doesn't work with modern vim, needs python2
 Plug 'heavenshell/vim-pydocstring'
+
+Plug 'rhysd/vim-grammarous'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -226,3 +228,17 @@ set clipboard=unnamedplus
 set autoread
 au CursorHold,CursorholdI * :checktime
 au FocusGained,BufEnter * :checktime
+
+"""" Improving Prose """"
+"" Vim-wordy
+"" Vim-grammarous (language tool)
+" this sets up the basics on its own. There is still more to play with
+"" Vim-languagetool (language tool)
+"grammarous is far better
+"" alex (insensitive words)
+"" just say no (hedge words)
+"" write good (everything)
+"" proselint (quality of prose)
+"" vale (multi-purpose, can include above)
+"" textlint (like vale)
+"" coala (like vale)
