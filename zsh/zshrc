@@ -57,7 +57,7 @@ function connect_to_robot {
     # takes a single number arg representing the robot
     if [ "$1" = "flo" ]
     then
-        export ROS_MASTER_URI=http://10.42.0.189:11311
+        export ROS_MASTER_URI=http://flo-nuc:11311
         echo "added nuc as master uri"
     elif [ "$1" = "kq" ]
     then
