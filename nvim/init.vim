@@ -232,6 +232,11 @@ au FocusGained,BufEnter * :checktime
 """" Improving Prose """"
 "" Vim-wordy
 "" Vim-grammarous (language tool)
+:nmap <F5> <Plug>(grammarous-move-to-next-error)
+:nmap <F6> <Plug>(grammarous-move-to-info-window)
+":nmap <F7> <Plug>(grammarous-close-info-window)
+"let g:grammarous#use_location_list=1
+
 " this sets up the basics on its own. There is still more to play with
 "" Vim-languagetool (language tool)
 "grammarous is far better
