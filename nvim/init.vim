@@ -47,6 +47,7 @@ Plug 'Valloric/YouCompleteMe'
 Plug 'heavenshell/vim-pydocstring'
 
 Plug 'rhysd/vim-grammarous'
+Plug 'davidbeckingsale/writegood.vim'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -206,6 +207,7 @@ let g:ale_fixers = {
             \}
 let g:ale_linters = {
             \'python':['flake','pylint'],
+            \'latex':['alex','chktex','proselint','lacheck'],
             \}
 
 nmap <silent> <leader>a :ALENext<cr>

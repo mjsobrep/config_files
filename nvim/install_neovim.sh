@@ -22,7 +22,7 @@ prior=$(pwd)
 cd ~/Downloads
 git clone https://github.com/universal-ctags/ctags.git
 cd ctags
-./autogen.sh 
+./autogen.sh
 ./configure
 make
 sudo make install
@@ -35,6 +35,9 @@ sudo apt install -y fonts-powerline
 
 # vim remote
 pip3 install --user neovim-remote
+
+# prose lint for linting text
+pip install --user proselint
 
 #silver searcher
 sudo apt install -y silversearcher-ag
