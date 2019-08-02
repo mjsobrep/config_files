@@ -212,6 +212,9 @@ let g:ale_linters = {
 
 nmap <silent> <leader>a :ALENext<cr>
 nmap <silent> <leader>A :ALEPrevious<cr>
+let g:airline#extensions#ale#enabled = 1
+
+let g:ale_echo_msg_format = '[%linter%] %s'
 
 """"" Py Doc Sting """""
 nmap <silent> <Leader-d> <Plug>(pydocstring)
