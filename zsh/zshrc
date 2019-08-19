@@ -13,6 +13,7 @@ antigen theme denysdovhan/spaceship-prompt
 antigen apply
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 
 ## put in fasd hooks:
 eval "$(fasd --init auto)"
@@ -119,6 +120,7 @@ bindkey -a 'p' pastefromclipboard
 #### Set Text Editor ####
 export EDITOR='nvim'
 export VISUAL='nvim'
+
 
 
 ## Ruby
