@@ -48,6 +48,10 @@ Plug 'heavenshell/vim-pydocstring'
 
 Plug 'rhysd/vim-grammarous'
 Plug 'davidbeckingsale/writegood.vim'
+
+Plug 'pangloss/vim-javascript'
+"Plug 'mxw/vim-jsx' having trouble with this one in jsx
+Plug 'MaxMEllon/vim-jsx-pretty'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -204,11 +208,15 @@ let g:ale_fix_on_save = 1
 let g:ale_fixers = {
             \ '*': ['remove_trailing_lines', 'trim_whitespace'],
             \ 'python': ['autopep8'],
+            \ 'javascript': ['eslint'],
             \}
 let g:ale_linters = {
             \'python':['flake','pylint'],
             \'latex':['alex','chktex','proselint','lacheck'],
+            \'javascript': ['eslint'],
             \}
+
+let g:ale_linter_aliases = {'jsx': 'javascript'}
 
 nmap <silent> <leader>a :ALENext<cr>
 nmap <silent> <leader>A :ALEPrevious<cr>
@@ -218,6 +226,7 @@ let g:ale_echo_msg_format = '[%linter%] %s'
 
 """"" Py Doc Sting """""
 nmap <silent> <Leader-d> <Plug>(pydocstring)
+let g:pydocstring_templates_dir = '~/Documents/git/config_files/nvim/pydoc-templates'
 
 
 """"" Tag setup """""
