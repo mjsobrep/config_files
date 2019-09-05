@@ -7,11 +7,11 @@ Then setup a credential manager:
 - `sudo make --directory=/usr/share/doc/git/contrib/credential/gnome-keyring`
 - `git config --global credential.helper /usr/share/doc/git/contrib/credential/gnome-keyring/git-credential-gnome-keyring`
 
-If you are on windows, then just install git and it works. 
+If you are on windows, then just install git and it works.
 If you are in WSL, then install git in windows and type into wsl:
 `git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe"`
 
-Then get a new auth key from github MAKE SURE TO GET REPO PERMISSIONS. 
+Then get a new auth key from github MAKE SURE TO GET REPO PERMISSIONS.
 
 To install on linux, pull this to ~/Documents/git/config_files
 the scripts are dumb af, they won't work anywhere else.
@@ -25,3 +25,7 @@ you install to python normally might not be available in ROS
 For example, flake. So it is best to source all of the ros stuff
 before opening your text editor. You may find that you also need
 to pip install flake8, etc. after sourcing ROS stuff.
+
+## TODO
+make an install file that installs the node version manager, latest stable node.js
+and sets up eslint
