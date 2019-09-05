@@ -121,7 +121,11 @@ bindkey -a 'p' pastefromclipboard
 export EDITOR='nvim'
 export VISUAL='nvim'
 
+#### Node packages ####
+#from: https://github.com/sindresorhus/guides/blob/master/npm-global-without-sudo.md
+NPM_PACKAGES="${HOME}/.npm-packages"
 
+export PATH="$NPM_PACKAGES/bin:$PATH"
 
 ## Ruby
 #export GEM_HOME="$HOME/gems"
