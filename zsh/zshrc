@@ -37,6 +37,7 @@ BULLETTRAIN_CONTEXT_DEFAULT_USER='mjsobrep'
 
 
 ###### Trying to autoload keyboard mods #######
+setxkbmap -option "lv3:caps_switch"
 
 ###### ROS Support ######
 function ifip { /sbin/ifconfig $1 | grep "inet addr" | awk -F: '{print $2}' |awk '{print $1}'; }

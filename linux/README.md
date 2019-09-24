@@ -19,9 +19,7 @@ clear Lock
 keycode 66 = ISO_Level3_Shift
 
 ### Make it start when you login:
-search for startup application preferences (from launcher)
-add a new one
-make the command: `xmodmap ~/.Xmodmap`
+Whenever a shell is opened, this will get started, so just open a shell at some point
 
 ## Remote control
 Can use mintty+x11 window manager on windows. Works well but maybe slow
