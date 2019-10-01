@@ -13,10 +13,12 @@ let mapleader = "'"
 call plug#begin('~/.local/share/nvim/plugged')
 Plug 'scrooloose/nerdtree' ", {'on':'NERDTeeToggle'}  allows a filetree on the side, loaded the first time it is used
 Plug 'Xuyuanp/nerdtree-git-plugin' " Adds git info to nerdtree
-" airline
-" fzif
 " colorscheme
 Plug 'airblade/vim-gitgutter' " Add git info to the gutter, next to numbers
+
+Plug 'tpope/vim-fugitive'
+
+
 Plug 'w0rp/ale' " auto lints while typing. TODO: explore this more, lots of cool stuff
 " Plug tpope/vim-surround " allows easy management of brackets, braces, etc.
 " requires some learning...
@@ -40,8 +42,31 @@ Plug 'lervag/vimtex'
 
 Plug 'scrooloose/nerdcommenter'
 
-Plug 'Valloric/YouCompleteMe'
+"" YCM:
+"Plug 'Valloric/YouCompleteMe' "Lol, this doesn't do anything
+" Installing has to be done by a messing compilation. It does
+" too much.
+"""""""""""""""""""
+
 "TODO: Try out Jedi-vim and ncm2;q
+"TODO: does this conflict with ale?
+
+"" COC:
+"Plug 'neoclide/coc.nvim', {'branch':'release'} Too much work to setup
+" and uses json and stuff. Essentially it rolls vs code into here,
+" preventing good config files and stuff. Not a fan
+""""""""""""""""""""
+
+"" Deoplete:
+" so long as I use python 2, this isn't a viable option:
+"Plug 'Shougo/deoplete.nvim',{'do':':UpdateRemotePlugins'}
+"Plug 'deoplete-plugins/deoplete-jedi' " requires: pip install jedi
+"Plug 'lionawurscht/deoplete-biblatex'
+"Plug 'deoplete-plugins/deoplete-zsh'
+"" requires typescript to be installed (npm -g install typescript) or
+"" locally in your node modules
+"Plug 'mhartington/nvim-typescript', {'do': './install.sh'}
+""""""""""""""""""""
 
 "Plug 'taketwo/vim-ros' " doesn't work with modern vim, needs python2
 Plug 'heavenshell/vim-pydocstring'
@@ -52,6 +77,19 @@ Plug 'davidbeckingsale/writegood.vim'
 Plug 'pangloss/vim-javascript'
 "Plug 'mxw/vim-jsx' having trouble with this one in jsx
 Plug 'MaxMEllon/vim-jsx-pretty'
+
+Plug 'leafgarland/typescript-vim'
+Plug 'HerringtonDarkholme/yats.vim'
+
+" Maintaining tags files, probably only want one of these:
+Plug 'ludovicchabant/vim-gutentags'
+" Plug LucHermitte/lh-tags
+" Plug soramugi/auto-ctags.vim
+"
+
+"" Markdown
+" will install npm+yarn:
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -155,6 +193,8 @@ nnoremap <Leader>o :Files<CR>
 nnoremap <Leader>s :Ag<CR>
 nnoremap <Leader>b :Buffers<CR>
 nnoremap <Leader>m :Marks<CR>
+nnoremap <Leader>t :Tags<CR>
+
 "explore using for fuzzy finding
 
 """"""""" Easier pane nav """"""""""""
@@ -205,24 +245,38 @@ command! ToggleSpelling call FlipSpelling()
 
 """"" Linting with ale """"'
 let g:ale_fix_on_save = 1
+let g:ale_completion_enabled = 1 " don't want to mess with ycm
 let g:ale_fixers = {
             \ '*': ['remove_trailing_lines', 'trim_whitespace'],
             \ 'python': ['autopep8'],
-            \ 'javascript': ['eslint'],
+            \ 'javascript': ['prettier'],
+            \ 'typescript': ['prettier']
             \}
 let g:ale_linters = {
             \'python':['flake','pylint'],
             \'latex':['alex','chktex','proselint','lacheck'],
+            \'markdown':['alex','proselint'],
             \'javascript': ['eslint'],
+            \'typescript': ['eslint']
             \}
 
-let g:ale_linter_aliases = {'jsx': 'javascript'}
+let g:ale_linter_aliases = {
+            \'jsx': 'javascript',
+            \'tsx': 'typescript'}
 
 nmap <silent> <leader>a :ALENext<cr>
 nmap <silent> <leader>A :ALEPrevious<cr>
 let g:airline#extensions#ale#enabled = 1
 
 let g:ale_echo_msg_format = '[%linter%] %s'
+"To fix problems with over eagerly inserting text:
+set completeopt=menu,menuone,preview,noselect,noinsert
+"let g:ale_set_ballons = 1 "should allow info to pop up when hovering
+let g:ale_close_preview_on_insert = 1  "closes the ale preview when in insert mode
+let g:ale_cursor_detail = 0 "shows the error in a window when hovering
+                            "don't want this. prefer error in airline
+                            "status
+
 
 """"" Py Doc Sting """""
 nmap <silent> <Leader-d> <Plug>(pydocstring)
@@ -261,3 +315,6 @@ au FocusGained,BufEnter * :checktime
 "" vale (multi-purpose, can include above)
 "" textlint (like vale)
 "" coala (like vale)
+
+"""" Deoplete for autocomplete """"
+let g:deoplete#enable_at_startup = 1
