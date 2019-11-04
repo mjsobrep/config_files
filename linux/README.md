@@ -14,6 +14,7 @@ Add a new key:
 `key <NMLK> { [ Delete, Num_Lock] };`
 after the backslash key
 
+Now done in bashrc:
 Make a new file called ~/.Xmodmap and put in it:
 clear Lock
 keycode 66 = ISO_Level3_Shift

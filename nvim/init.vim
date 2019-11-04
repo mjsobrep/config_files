@@ -253,7 +253,8 @@ let g:ale_fixers = {
             \ '*': ['remove_trailing_lines', 'trim_whitespace'],
             \ 'python': ['autopep8'],
             \ 'javascript': ['prettier'],
-            \ 'typescript': ['prettier']
+            \ 'typescript': ['prettier'],
+            \ 'cpp':['clang-format'],
             \}
 let g:ale_linters = {
             \'python':['flake','pylint'],
@@ -265,7 +266,9 @@ let g:ale_linters = {
 
 let g:ale_linter_aliases = {
             \'jsx': 'javascript',
-            \'tsx': 'typescript'}
+            \'tsx': 'typescript',
+            \'arduino':'cpp'
+            \}
 
 nmap <silent> <leader>a :ALENext<cr>
 nmap <silent> <leader>A :ALEPrevious<cr>
