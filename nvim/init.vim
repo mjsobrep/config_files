@@ -133,8 +133,8 @@ set smartcase " pat attention to case if any caps present
 " autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 
 " Open nerdtree automatically if we open vim with a folder:
-autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
+"autocmd StdinReadPre * let s:std_in=1
+"autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
 
 " Close vim if only window left is nerdtree:
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
@@ -146,6 +146,9 @@ map <C-n> :NERDTreeToggle<CR>
 """""""""" Tagbar settings """""""""""""""
 nmap <F8> :TagbarToggle<CR>
 let g:tagbar_ctags_bin='/usr/local/bin/ctags'
+
+"""""""""" gutentags settings """"""""""""
+let g:gutentags_cache_dir='/tmp/gutentags/'
 
 """""""""" Making it look good """""""""""
 
