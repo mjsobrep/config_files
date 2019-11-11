@@ -134,3 +134,6 @@ export PATH="$NPM_PACKAGES/bin:$PATH"
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
+
+##### Some GIT setup
+git config --global alias.tree "log --color --graph --pretty=format:'%C(#ff69b4)%h%Creset%x09%C(auto)%d%Creset %s %Cgreen(%cr)%C(bold blue) <%an> %Creset' --abbrev-commit --all --decorate"
