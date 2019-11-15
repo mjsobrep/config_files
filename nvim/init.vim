@@ -15,81 +15,42 @@ Plug 'scrooloose/nerdtree' ", {'on':'NERDTeeToggle'}  allows a filetree on the s
 Plug 'Xuyuanp/nerdtree-git-plugin' " Adds git info to nerdtree
 " colorscheme
 Plug 'airblade/vim-gitgutter' " Add git info to the gutter, next to numbers
+Plug 'ryanoasis/vim-devicons' " needs a nerdtre font
 
 Plug 'tpope/vim-fugitive'
 
 
 Plug 'w0rp/ale' " auto lints while typing. TODO: explore this more, lots of cool stuff
-" Plug tpope/vim-surround " allows easy management of brackets, braces, etc.
+Plug 'tpope/vim-surround' " allows easy management of brackets, braces, etc.
 " requires some learning...
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'majutsushi/tagbar'
-" Plug lervag/vimtex "tex for vim, needs more investigation. Best option?
 Plug 'edkolev/tmuxline.vim' " Puts vim statusline onto tmux statusline
-"Plug 'Yggdroot/indentLine' " Plugs little lines in for indentation requires
-"conceal line, which generally screws up a lot of other stuff
-" Plug 'ayu-theme/ayu-vim' "  A color scheme
-" Plug 'NLKNguyen/papercolor-theme'
-"Plug 'sonph/onehalf', {'rtp': 'vim/'}
 Plug 'NLKNguyen/papercolor-theme'
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
+
 Plug 'christoomey/vim-tmux-navigator'
 
 Plug 'lervag/vimtex'
 
 Plug 'scrooloose/nerdcommenter'
 
-"" YCM:
-"Plug 'Valloric/YouCompleteMe' "Lol, this doesn't do anything
-" Installing has to be done by a messing compilation. It does
-" too much.
-"""""""""""""""""""
-
-"TODO: Try out Jedi-vim and ncm2;q
-"TODO: does this conflict with ale?
-
-"" COC:
-"Plug 'neoclide/coc.nvim', {'branch':'release'} Too much work to setup
-" and uses json and stuff. Essentially it rolls vs code into here,
-" preventing good config files and stuff. Not a fan
-""""""""""""""""""""
-
-"" Deoplete:
-" so long as I use python 2, this isn't a viable option:
-"Plug 'Shougo/deoplete.nvim',{'do':':UpdateRemotePlugins'}
-"Plug 'deoplete-plugins/deoplete-jedi' " requires: pip install jedi
-"Plug 'lionawurscht/deoplete-biblatex'
-"Plug 'deoplete-plugins/deoplete-zsh'
-"" requires typescript to be installed (npm -g install typescript) or
-"" locally in your node modules
-"Plug 'mhartington/nvim-typescript', {'do': './install.sh'}
-""""""""""""""""""""
-
-"Plug 'taketwo/vim-ros' " doesn't work with modern vim, needs python2
 Plug 'heavenshell/vim-pydocstring'
 
-Plug 'rhysd/vim-grammarous'
+Plug 'rhysd/vim-grammarous' " need to call to hit the server manually
 Plug 'davidbeckingsale/writegood.vim'
 
 Plug 'pangloss/vim-javascript'
-"Plug 'mxw/vim-jsx' having trouble with this one in jsx
 Plug 'MaxMEllon/vim-jsx-pretty'
 
 Plug 'leafgarland/typescript-vim'
-Plug 'HerringtonDarkholme/yats.vim'
+Plug 'HerringtonDarkholme/yats.vim' " yet another typescript plugin
 
 " Maintaining tags files, probably only want one of these:
 Plug 'ludovicchabant/vim-gutentags'
-" Plug LucHermitte/lh-tags
-" Plug soramugi/auto-ctags.vim
-"
-
-"" Markdown
-" will install npm+yarn:
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -106,6 +67,7 @@ set splitbelow
 set splitright
 
 " set rnu " turns on relative numbering
+set rnu
 
 " use ; for :
 nnoremap ; :
@@ -125,22 +87,22 @@ set smartcase " pat attention to case if any caps present
 :nnoremap <Tab> :bnext<CR>
 :nnoremap <S-Tab> :bprevious<CR>
 
-"""""""""""" Nerd tree commands """"""""""""
-" autocmd vimenter * NERDTree " Automatically opens nerdtree
-
-" Open nerdtree automatically if vim opens with no files:
-" autocmd StdinReadPre * let s:std_in=1
-" autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
-
-" Open nerdtree automatically if we open vim with a folder:
-"autocmd StdinReadPre * let s:std_in=1
-"autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
-
+"""""""""""" Nerd Tree """"""""""""
 " Close vim if only window left is nerdtree:
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
 " Nerdtree shortcut:
-map <C-n> :NERDTreeToggle<CR>
+function! NERDTreeFindToggle()
+    if exists("g:NERDTree") && g:NERDTree.IsOpen()
+        :NERDTreeToggle
+    else
+        :NERDTreeFind
+    endif
+endfunction
+nnoremap <C-n> :call NERDTreeFindToggle()<CR>
+
+"remove ? note
+let NERDTreeMinimalUI = 1
 
 
 """""""""" Tagbar settings """""""""""""""
@@ -148,6 +110,7 @@ nmap <F8> :TagbarToggle<CR>
 let g:tagbar_ctags_bin='/usr/local/bin/ctags'
 
 """""""""" gutentags settings """"""""""""
+" Keep the tag files out of the projects:
 let g:gutentags_cache_dir='/tmp/gutentags/'
 
 """""""""" Making it look good """""""""""
@@ -196,9 +159,12 @@ nnoremap <Leader>o :Files<CR>
 nnoremap <Leader>s :Ag<CR>
 nnoremap <Leader>b :Buffers<CR>
 nnoremap <Leader>m :Marks<CR>
-nnoremap <Leader>t :Tags<CR>
+"nnoremap <Leader>t :Tags<CR> " this will search ALL tags in session
+" this will search the tags in the curent file:
+nnoremap <Leader>t :BTags<CR>
 
-"explore using for fuzzy finding
+" Have a history for fzf, use ctrl-n and ctrl-p
+let g:fzf_history_dir = '~/.local/share/fzf-history'
 
 """"""""" Easier pane nav """"""""""""
 map <C-h> <C-W>h
@@ -248,7 +214,7 @@ command! ToggleSpelling call FlipSpelling()
 
 """"" Linting with ale """"'
 let g:ale_fix_on_save = 1
-let g:ale_completion_enabled = 1 " don't want to mess with ycm
+let g:ale_completion_enabled = 1
 let g:ale_fixers = {
             \ '*': ['remove_trailing_lines', 'trim_whitespace'],
             \ 'python': ['autopep8'],
@@ -257,7 +223,7 @@ let g:ale_fixers = {
             \ 'cpp':['clang-format'],
             \}
 let g:ale_linters = {
-            \'python':['flake','pylint'],
+            \'python':['flake','pylint','pyls'],
             \'latex':['alex','chktex','proselint','lacheck'],
             \'markdown':['alex','proselint'],
             \'javascript': ['eslint'],
@@ -270,13 +236,13 @@ let g:ale_linter_aliases = {
             \'arduino':'cpp'
             \}
 
-nmap <silent> <leader>a :ALENext<cr>
-nmap <silent> <leader>A :ALEPrevious<cr>
+nmap <silent> ]a :ALENext<cr>
+nmap <silent> [a :ALEPrevious<cr>
 let g:airline#extensions#ale#enabled = 1
 
 let g:ale_echo_msg_format = '[%linter%] %s'
 "To fix problems with over eagerly inserting text:
-set completeopt=menu,menuone,preview,noselect,noinsert
+"set completeopt=menu,menuone,preview,noselect,noinsert
 "let g:ale_set_ballons = 1 "should allow info to pop up when hovering
 let g:ale_close_preview_on_insert = 1  "closes the ale preview when in insert mode
 let g:ale_cursor_detail = 0 "shows the error in a window when hovering
@@ -288,13 +254,6 @@ let g:ale_cursor_detail = 0 "shows the error in a window when hovering
 nmap <silent> <Leader-d> <Plug>(pydocstring)
 let g:pydocstring_templates_dir = '~/Documents/git/config_files/nvim/pydoc-templates'
 
-
-""""" Tag setup """""
-"" Use ctrl-] to jump to a definition
-"set tags=~/mytags
-
-" generate new tags: ctags -R
-"
 """"" Copy and past with system clipboard """"
 set clipboard=unnamedplus
 
@@ -322,5 +281,6 @@ au FocusGained,BufEnter * :checktime
 "" textlint (like vale)
 "" coala (like vale)
 
-"""" Deoplete for autocomplete """"
-let g:deoplete#enable_at_startup = 1
+
+"""" git """"
+set updatetime=100 "" will make guttertags show up faster

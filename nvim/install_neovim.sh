@@ -61,3 +61,7 @@ cd $prior
 
 #install clang-format
 sudo apt install -y clang-format
+
+# install lsp
+pip install jedi --user
+pip install python-language-server --user
