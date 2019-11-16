@@ -65,3 +65,13 @@ sudo apt install -y clang-format
 # install lsp
 pip install jedi --user
 pip install python-language-server --user
+
+# nerd fonts
+prior=$(pwd)
+cd ~/Downloads
+git clone https://github.com/ryanoasis/nerd-fonts.git --depth=1
+cd nerd-fonts
+./install.sh
+cd ..
+rm -rf nerd-fonts
+cd $prior
