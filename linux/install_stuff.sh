@@ -8,7 +8,7 @@ sudo apt install -y git curl build-essential autoconf cmake
 
 # fasd for fast jumping and searching
 if(($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==16))
-    then 
+    then
         sudo add-apt-repository -y ppa:aacebedo/fasd
 fi
 sudo apt-get update -y
