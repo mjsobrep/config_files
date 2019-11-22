@@ -49,9 +49,7 @@ sudo apt install -y xdotool zathura
 # hop into vim and install everything
 nvim +PlugInstall +qall > /dev/null
 
-# finish you complete me setup
-python3 ~/.local/share/nvim/plugged/YouCompleteMe/install.py --clang-completer
-
+# A better, faster version of find, runs all of the searching:
 prior=$(pwd)
 cd ~/Downloads
 wget https://github.com/sharkdp/fd/releases/download/v7.3.0/fd_7.3.0_amd64.deb

@@ -32,6 +32,3 @@ For example, flake. So it is best to source all of the ros stuff
 before opening your text editor. You may find that you also need
 to pip install flake8, etc. after sourcing ROS stuff.
 
-## TODO
-make an install file that installs the node version manager, latest stable node.js
-and sets up eslint
