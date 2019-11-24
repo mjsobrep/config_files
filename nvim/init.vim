@@ -18,6 +18,7 @@ Plug 'airblade/vim-gitgutter' " Add git info to the gutter, next to numbers
 Plug 'ryanoasis/vim-devicons' " needs a nerdtre font
 
 Plug 'tpope/vim-fugitive'
+Plug 'junegunn/gv.vim' " for viewing commit tree, :GV to view :GV! for commits on this file
 
 
 Plug 'w0rp/ale' " auto lints while typing. TODO: explore this more, lots of cool stuff
@@ -238,20 +239,22 @@ let g:ale_linter_aliases = {
 
 nmap <silent> ]a :ALENext<cr>
 nmap <silent> [a :ALEPrevious<cr>
+nmap <silent> <Leader>h <Plug>(ale_hover)
+
 let g:airline#extensions#ale#enabled = 1
 
 let g:ale_echo_msg_format = '[%linter%] %s'
 "To fix problems with over eagerly inserting text:
-"set completeopt=menu,menuone,preview,noselect,noinsert
-"let g:ale_set_ballons = 1 "should allow info to pop up when hovering
-let g:ale_close_preview_on_insert = 1  "closes the ale preview when in insert mode
+set completeopt=menu,menuone,preview,noselect,noinsert
+"let g:ale_set_ballons = 1 should allow info to pop up when hovering
+let g:ale_close_preview_on_insert = 0  "closes the ale preview when in insert mode
 let g:ale_cursor_detail = 0 "shows the error in a window when hovering
                             "don't want this. prefer error in airline
                             "status
 
 
 """"" Py Doc Sting """""
-nmap <silent> <Leader-d> <Plug>(pydocstring)
+nmap <silent> <Leader>d <Plug>(pydocstring)
 let g:pydocstring_templates_dir = '~/Documents/git/config_files/nvim/pydoc-templates'
 
 """"" Copy and past with system clipboard """"
@@ -284,3 +287,6 @@ au FocusGained,BufEnter * :checktime
 
 """" git """"
 set updatetime=100 "" will make guttertags show up faster
+" for jumping between hunks using more obvious commands
+nmap ]h <Plug>(GitGutterNextHunk)
+nmap [h <Plug>(GitGutterPrevHunk)
