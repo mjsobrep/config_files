@@ -3,9 +3,15 @@
 Start by installing linux, then git `sudo apt install -y git`
 
 Then setup a credential manager:
-- `sudo apt-get install libgnome-keyring-dev`
-- `sudo make --directory=/usr/share/doc/git/contrib/credential/gnome-keyring`
-- `git config --global credential.helper /usr/share/doc/git/contrib/credential/gnome-keyring/git-credential-gnome-keyring`
+- Ubuntu 16
+    - `sudo apt-get install libgnome-keyring-dev`
+    - `sudo make --directory=/usr/share/doc/git/contrib/credential/gnome-keyring`
+    - `git config --global credential.helper /usr/share/doc/git/contrib/credential/gnome-keyring/git-credential-gnome-keyring`
+- Ubuntu 18
+    - `sudo apt install -y libsecret-1-0 libsecret-1-dev`
+    - `cd /usr/share/doc/git/contrib/credential/libsecret`
+    - `sudo make`
+    - `git config --global credential.helper /usr/share/doc/git/contrib/credential/libsecret/git-credential-libsecret`
 
 If you are on windows, then just install git and it works.
 If you are in WSL, then install git in windows and type into wsl:
@@ -26,6 +32,3 @@ For example, flake. So it is best to source all of the ros stuff
 before opening your text editor. You may find that you also need
 to pip install flake8, etc. after sourcing ROS stuff.
 
-## TODO
-make an install file that installs the node version manager, latest stable node.js
-and sets up eslint

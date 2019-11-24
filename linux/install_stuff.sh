@@ -7,7 +7,10 @@ sudo apt-get update -y && sudo apt-get upgrade -y
 sudo apt install -y git curl build-essential autoconf cmake
 
 # fasd for fast jumping and searching
-sudo add-apt-repository -y ppa:aacebedo/fasd
+if(($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==16))
+    then
+        sudo add-apt-repository -y ppa:aacebedo/fasd
+fi
 sudo apt-get update -y
 sudo apt-get install -y fasd
 

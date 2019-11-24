@@ -1,4 +1,4 @@
-set -e 
+set -e
 
 sudo apt install -y zsh
 chsh -s $(which zsh)
@@ -10,4 +10,6 @@ curl -L git.io/antigen > ~/antigen.zsh
 sudo apt install -y ttf-ancient-fonts
 
 # Link in the config file here:
-ln -s -f ~/Documents/git/config_files/zsh/zshrc ~/.zshrc 
+ln -s -f ~/Documents/git/config_files/zsh/zshrc ~/.zshrc
+
+sudo apt install -y xsel xclip
