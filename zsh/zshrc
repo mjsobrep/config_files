@@ -48,8 +48,7 @@ if (($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut
     if (($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==18)); then
     ROS_VERSION="melodic"
     OS_VERSION="bionic"
-
-function ifip { ip -4 addr show enx98e743e78ee0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' }
+    function ifip { ip -4 addr show $1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' }
 fi
 fi
 
