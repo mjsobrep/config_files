@@ -268,7 +268,8 @@ au FocusGained,BufEnter * :checktime
 """" Improving Prose """"
 "" Vim-wordy
 "" Vim-grammarous (language tool)
-:nmap <F5> <Plug>(grammarous-move-to-next-error)
+:nmap <silent> ]g <Plug>(grammarous-move-to-next-error)
+:nmap <silent> [g <Plug>(grammarous-move-to-previous-error)
 :nmap <F6> <Plug>(grammarous-move-to-info-window)
 ":nmap <F7> <Plug>(grammarous-close-info-window)
 "let g:grammarous#use_location_list=1
