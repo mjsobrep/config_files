@@ -167,3 +167,8 @@ git config --global alias.tree "log --color --graph --pretty=format:'%C(#ff69b4)
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+### common remote targets ###
+function ssh-home {
+    ssh mjsobrep@192.168.1.6 -X
+}
