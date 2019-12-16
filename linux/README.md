@@ -8,7 +8,7 @@ sudo apt-get install fasd
 
 
 ## remapping keyboard on linux
-edit /usr/share/X11/xkb/symbols/us to have Up in the third place for key AD02, Left in third place for AC01, Down for AC02, and Right for AC03
+edit `/usr/share/X11/xkb/symbols/us` to have Up in the third place for key AD02, Left in third place for AC01, Down for AC02, and Right for AC03
 Add a new key:
 `key <SPCE> { [ space, space, Escape]};`
 `key <NMLK> { [ Delete, Num_Lock] };`
