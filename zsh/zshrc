@@ -157,14 +157,17 @@ export PATH="$NPM_PACKAGES/bin:$PATH"
 #export GEM_HOME="$HOME/gems"
 #export PATH="$HOME/gems/bin:$PATH"
 
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
-
 ##### Some GIT setup
 git config --global alias.tree "log --color --graph --pretty=format:'%C(#ff69b4)%h%Creset%x09%C(auto)%d%Creset %s %Cgreen(%cr)%C(bold blue) <%an> %Creset' --abbrev-commit --all --decorate"
 
+function gitChildChanges {
+ find . -maxdepth 1 -mindepth 1 -type d -exec sh -c '(echo {} && cd {} && git status -s && echo)' \;
+}
 
 ### NVM ###
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"
