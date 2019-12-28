@@ -53,16 +53,6 @@ if (($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut
 fi
 fi
 
-case $(hostname) in
-    linPower)
-        export ROS_IP=`ifip enp0s31f6`;;
-    x220t)
-        export ROS_IP=`ifip wlp3s0`;;
-    mjs-mws)
-        export ROS_IP=`ifip enx98e743e78ee0`;;
-    *)
-        echo "unknown system";;
-esac
 
 if (($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==16));then
     ROS_VERSION="kinetic"
@@ -80,6 +70,19 @@ function connect_to_robot {
     echo "on OS: $OS_VERSION"
     source /opt/ros/${ROS_VERSION}/setup.zsh
     source ~/catkin_ws/devel/setup.zsh
+
+    case $(hostname) in
+        linPower)
+            export ROS_IP=`ifip enp0s31f6`;;
+        x220t)
+            export ROS_IP=`ifip wlp3s0`;;
+        mjs-mws)
+            export ROS_IP=`ifip enx98e743e78ee0`;;
+        *)
+            echo "unknown system";
+    esac
+    # Handle the device not existing and getting something empty:
+    [  -z "$ROS_IP" ] && echo "ROS_IP unset, setting on loopback"; export ROS_IP=`ifip lo`
 
     # takes a single number arg representing the robot
     if [ "$1" = "flo" ]
@@ -99,6 +102,8 @@ function connect_to_robot {
         export ROS_MASTER_URI=http://localhost:11311
         echo "connected to local machine"
     fi
+    echo "set ROS MASTER URI to $ROS_MASTER_URI"
+    echo "set ROS IP to $ROS_IP"
     echo "done setting up ros"
 }
 
