@@ -33,6 +33,8 @@ cd $prior
 ./nvim/install_neovim.sh
 ./tmux/install_tmux.sh
 
+sudo ubuntu-drivers autoinstall
+
 sudo apt autoremove -y
 
 sudo reboot
