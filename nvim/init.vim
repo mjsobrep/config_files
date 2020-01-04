@@ -52,6 +52,9 @@ Plug 'HerringtonDarkholme/yats.vim' " yet another typescript plugin
 
 " Maintaining tags files, probably only want one of these:
 Plug 'ludovicchabant/vim-gutentags'
+
+Plug 'ekalinin/Dockerfile.vim'
+
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
