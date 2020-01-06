@@ -219,25 +219,29 @@ command! ToggleSpelling call FlipSpelling()
 """"" Linting with ale """"'
 let g:ale_fix_on_save = 1
 let g:ale_completion_enabled = 1
+let g:ale_linters_explicit=1
 let g:ale_fixers = {
             \ '*': ['remove_trailing_lines', 'trim_whitespace'],
             \ 'python': ['autopep8'],
             \ 'javascript': ['prettier'],
             \ 'typescript': ['prettier'],
+            \ 'typescriptreact': ['prettier'],
             \ 'cpp':['clang-format'],
             \}
+"Prettier is needed for js/tsx: https://prettier.io/docs/en/install.html
 let g:ale_linters = {
             \'python':['flake','pylint','pyls'],
             \'latex':['alex','chktex','proselint','lacheck'],
             \'markdown':['alex','proselint'],
             \'javascript': ['eslint'],
-            \'typescript': ['eslint']
+            \'typescript': ['eslint'],
+            \ 'typescriptreact': ['eslint'],
             \}
 
 let g:ale_linter_aliases = {
             \'jsx': 'javascript',
             \'tsx': 'typescript',
-            \'arduino':'cpp'
+            \'arduino':'cpp',
             \}
 
 nmap <silent> ]a :ALENext<cr>
