@@ -5,6 +5,7 @@ set -e
 sudo apt-get update -y && sudo apt-get upgrade -y
 
 sudo apt install -y git curl build-essential autoconf cmake
+pip install --user pipenv pylint autopep8
 
 # fasd for fast jumping and searching
 if(($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==16))
