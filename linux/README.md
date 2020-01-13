@@ -83,7 +83,14 @@ To allow capslock + space bar to register as escape (handy for vim) edit the key
 To turn the numlock key into a delete key and make capslock + numlock make the `<NMLK>` have type `CUST_CAPSLOCK`, have position one and two have `osfDelete` and posiition three have `Num_Lock`
 
 Now upload the changed file back into the server with: `xkbcomp output.xkb $DISPLAY`.
-If everything works, put file somewhere, `~/.Xkeymap` works and add to `~/.xinitrc`: `test -f ~/.Xkeymap && xkbcomp ~/.Xkeymap $DISPLAY`
+
+If everything works, put file somewhere, `~/.Xkeymap` works and create a script for example named `~/start_keyboard.sh` with:
+```bash
+#!/bin/bash
+
+xkbcomp ~/.Xkeymap $DISPLAY
+```
+Make it executable (`chmod u+x ~/start_keyboard.sh`) and add the script to your startup applications.
 
 ### Old Way:
 
