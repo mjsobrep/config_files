@@ -37,9 +37,6 @@ BULLETTRAIN_CONTEXT_DEFAULT_USER='mjsobrep'
 
 
 
-###### Trying to autoload keyboard mods #######
-setxkbmap -option "lv3:caps_switch"
-
 ###### ROS Support ######
 if (($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==16));then
     ROS_VERSION="kinetic"
@@ -133,10 +130,6 @@ export PATH
 export MANPATH
 export INFOPATH
 
-#### Getting keyboard stuff to work ####
-#xmodmap ~/.Xmodmap
-#numlockx on
-#
 
 #### Using system clipboard ####
 yanktoclipboard(){
