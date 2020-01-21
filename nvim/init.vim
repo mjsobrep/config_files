@@ -167,6 +167,9 @@ nnoremap <Leader>m :Marks<CR>
 " this will search the tags in the curent file:
 nnoremap <Leader>t :BTags<CR>
 
+"Make AG only search contents not names (https://github.com/junegunn/fzf.vim/issues/346):
+command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : --nth 4..'}, <bang>0)
+
 " Have a history for fzf, use ctrl-n and ctrl-p
 let g:fzf_history_dir = '~/.local/share/fzf-history'
 
