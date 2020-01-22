@@ -77,7 +77,7 @@ function connect_to_robot {
             export ROS_IP=`ifip wlp3s0`;;
         mjs-mws)
             echo "recognized device MJS-MWS"
-            export ROS_IP=`ifip enx98e743e78ee0`;;
+            export ROS_IP=`ifip enx98e743e78ee0 || ifip wlp59s0`;;
         *)
             echo "unknown system";
     esac
