@@ -51,16 +51,6 @@ fi
 fi
 
 
-if (($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==16));then
-    ROS_VERSION="kinetic"
-    OS_VERSION="xenial"
-    else
-    if (($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==18)); then
-    ROS_VERSION="melodic"
-    OS_VERSION="bionic"
-fi
-fi
-
 function connect_to_robot {
     echo "setting up for $1"
     echo "using ros version: $ROS_VERSION"
