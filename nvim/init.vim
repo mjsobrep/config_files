@@ -230,12 +230,18 @@ let g:ale_fixers = {
             \ 'typescript': ['prettier'],
             \ 'typescriptreact': ['prettier'],
             \ 'cpp':['clang-format'],
+            \ 'tex':['latexindent'],
+            \ 'markdown':['prettier']
             \}
+
+" This will make prettier always wrap text:
+let b:ale_javascript_prettier_options = '--prose-wrap always'
 "Prettier is needed for js/tsx: https://prettier.io/docs/en/install.html
+"I was using Alex in a few places to find insensitive words, but it was annoying as hell
 let g:ale_linters = {
             \'python':['flake','pylint','pyls'],
-            \'latex':['alex','chktex','proselint','lacheck'],
-            \'markdown':['alex','proselint'],
+            \'tex':['chktex','proselint','lacheck', 'writegood'],
+            \'markdown':['proselint', 'writegood', 'remark_lint'],
             \'javascript': ['eslint'],
             \'typescript': ['eslint'],
             \ 'typescriptreact': ['eslint'],
