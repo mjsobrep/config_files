@@ -55,6 +55,7 @@ Plug 'ludovicchabant/vim-gutentags'
 
 Plug 'ekalinin/Dockerfile.vim'
 
+Plug 'jceb/vim-orgmode'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
