@@ -252,6 +252,8 @@ let g:ale_linter_aliases = {
             \'jsx': 'javascript',
             \'tsx': 'typescript',
             \'arduino':'cpp',
+            \'plaintex':'tex',
+            \'latex':'tex',
             \}
 
 nmap <silent> ]a :ALENext<cr>
