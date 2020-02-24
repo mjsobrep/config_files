@@ -91,6 +91,10 @@ function connect_to_robot {
     then
         export ROS_MASTER_URI=http://localhost:11311
         echo "connected to local machine"
+    elif [ "$1" = "colcon" ]
+    then
+        export ROS_MASTER_URI=http://localhost:11311
+        echo "setup for colcon"
     fi
     echo "set ROS MASTER URI to $ROS_MASTER_URI"
     echo "set ROS IP to $ROS_IP"
