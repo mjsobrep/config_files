@@ -232,7 +232,8 @@ let g:ale_fixers = {
             \ 'typescriptreact': ['prettier'],
             \ 'cpp':['clang-format'],
             \ 'tex':['latexindent'],
-            \ 'markdown':['prettier']
+            \ 'markdown':['prettier'],
+            \ 'yaml':['prettier']
             \}
 
 " This will make prettier always wrap text:
@@ -246,6 +247,7 @@ let g:ale_linters = {
             \'javascript': ['eslint'],
             \'typescript': ['eslint'],
             \ 'typescriptreact': ['eslint'],
+            \ 'yaml':['yamllint'],
             \}
 
 let g:ale_linter_aliases = {
