@@ -51,16 +51,6 @@ fi
 fi
 
 
-if (($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==16));then
-    ROS_VERSION="kinetic"
-    OS_VERSION="xenial"
-    else
-    if (($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==18)); then
-    ROS_VERSION="melodic"
-    OS_VERSION="bionic"
-fi
-fi
-
 function connect_to_robot {
     echo "setting up for $1"
     echo "using ros version: $ROS_VERSION"
@@ -70,16 +60,19 @@ function connect_to_robot {
 
     case $(hostname) in
         linPower)
+            echo "recognized device Lin Power"
             export ROS_IP=`ifip enp0s31f6`;;
         x220t)
+            echo "recognized device x220t"
             export ROS_IP=`ifip wlp3s0`;;
         mjs-mws)
-            export ROS_IP=`ifip enx98e743e78ee0`;;
+            echo "recognized device MJS-MWS"
+            export ROS_IP=`ifip enx98e743e78ee0 || ifip wlp59s0`;;
         *)
             echo "unknown system";
     esac
     # Handle the device not existing and getting something empty:
-    [  -z "$ROS_IP" ] && echo "ROS_IP unset, setting on loopback"; export ROS_IP=`ifip lo`
+    [  -z "$ROS_IP" ] && (echo "ROS_IP unset, setting on loopback"; export ROS_IP=`ifip lo`)
 
     # takes a single number arg representing the robot
     if [ "$1" = "flo" ]
@@ -98,6 +91,10 @@ function connect_to_robot {
     then
         export ROS_MASTER_URI=http://localhost:11311
         echo "connected to local machine"
+    elif [ "$1" = "colcon" ]
+    then
+        export ROS_MASTER_URI=http://localhost:11311
+        echo "setup for colcon"
     fi
     echo "set ROS MASTER URI to $ROS_MASTER_URI"
     echo "set ROS IP to $ROS_IP"

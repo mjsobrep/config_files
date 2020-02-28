@@ -55,6 +55,7 @@ Plug 'ludovicchabant/vim-gutentags'
 
 Plug 'ekalinin/Dockerfile.vim'
 
+Plug 'jceb/vim-orgmode'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -167,6 +168,9 @@ nnoremap <Leader>m :Marks<CR>
 " this will search the tags in the curent file:
 nnoremap <Leader>t :BTags<CR>
 
+"Make AG only search contents not names (https://github.com/junegunn/fzf.vim/issues/346):
+command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : --nth 4..'}, <bang>0)
+
 " Have a history for fzf, use ctrl-n and ctrl-p
 let g:fzf_history_dir = '~/.local/share/fzf-history'
 
@@ -227,21 +231,31 @@ let g:ale_fixers = {
             \ 'typescript': ['prettier'],
             \ 'typescriptreact': ['prettier'],
             \ 'cpp':['clang-format'],
+            \ 'tex':['latexindent'],
+            \ 'markdown':['prettier'],
+            \ 'yaml':['prettier']
             \}
+
+" This will make prettier always wrap text:
+let b:ale_javascript_prettier_options = '--prose-wrap always'
 "Prettier is needed for js/tsx: https://prettier.io/docs/en/install.html
+"I was using Alex in a few places to find insensitive words, but it was annoying as hell
 let g:ale_linters = {
             \'python':['flake','pylint','pyls'],
-            \'latex':['alex','chktex','proselint','lacheck'],
-            \'markdown':['alex','proselint'],
+            \'tex':['chktex','proselint','lacheck', 'writegood'],
+            \'markdown':['proselint', 'writegood', 'remark_lint'],
             \'javascript': ['eslint'],
             \'typescript': ['eslint'],
             \ 'typescriptreact': ['eslint'],
+            \ 'yaml':['yamllint'],
             \}
 
 let g:ale_linter_aliases = {
             \'jsx': 'javascript',
             \'tsx': 'typescript',
             \'arduino':'cpp',
+            \'plaintex':'tex',
+            \'latex':'tex',
             \}
 
 nmap <silent> ]a :ALENext<cr>

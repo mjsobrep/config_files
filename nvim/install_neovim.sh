@@ -39,6 +39,9 @@ pip3 install --user neovim-remote
 # prose lint for linting text
 pip install --user proselint
 
+# Alex for insensitive writing
+npm install alex --global
+
 #silver searcher
 sudo apt install -y silversearcher-ag
 
