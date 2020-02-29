@@ -56,6 +56,8 @@ Plug 'ludovicchabant/vim-gutentags'
 Plug 'ekalinin/Dockerfile.vim'
 
 Plug 'jceb/vim-orgmode'
+
+Plug 'jalvesaq/Nvim-R'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -312,3 +314,7 @@ set updatetime=100 "" will make guttertags show up faster
 " for jumping between hunks using more obvious commands
 nmap ]h <Plug>(GitGutterNextHunk)
 nmap [h <Plug>(GitGutterPrevHunk)
+
+"""" NVIM-R """"
+let R_in_buffer = 0
+let R_source = '/home/mjsobrep/.local/share/nvim/plugged/Nvim-R/R/tmux_split.vim'
