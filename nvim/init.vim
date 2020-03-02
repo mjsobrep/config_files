@@ -235,7 +235,9 @@ let g:ale_fixers = {
             \ 'cpp':['clang-format'],
             \ 'tex':['latexindent'],
             \ 'markdown':['prettier'],
-            \ 'yaml':['prettier']
+            \ 'yaml':['prettier'],
+            \ 'r' :['styler'],
+            \ 'rmd' :['styler'],
             \}
 
 " This will make prettier always wrap text:
@@ -250,6 +252,8 @@ let g:ale_linters = {
             \'typescript': ['eslint'],
             \ 'typescriptreact': ['eslint'],
             \ 'yaml':['yamllint'],
+            \ 'r':['lintr'],
+            \ 'rmd':['lintr'],
             \}
 
 let g:ale_linter_aliases = {
@@ -258,6 +262,7 @@ let g:ale_linter_aliases = {
             \'arduino':'cpp',
             \'plaintex':'tex',
             \'latex':'tex',
+            \'rmarkdown': 'r',
             \}
 
 nmap <silent> ]a :ALENext<cr>
