@@ -238,6 +238,7 @@ let g:ale_fixers = {
             \ 'yaml':['prettier'],
             \ 'r' :['styler'],
             \ 'rmd' :['styler'],
+            \ 'xml' :['xmllint'],
             \}
 
 " This will make prettier always wrap text:
@@ -254,6 +255,7 @@ let g:ale_linters = {
             \ 'yaml':['yamllint'],
             \ 'r':['lintr'],
             \ 'rmd':['lintr'],
+            \ 'xml' :['xmllint'],
             \}
 
 let g:ale_linter_aliases = {
