@@ -60,9 +60,6 @@ sudo dpkg -i fd_7.3.0_amd64.deb
 rm fd_7.3.0_amd64.deb
 cd $prior
 
-#install clang-format
-sudo apt install -y clang-format
-
 # install lsp
 pip install jedi --user
 pip install python-language-server --user
@@ -76,3 +73,7 @@ cd nerd-fonts
 cd ..
 rm -rf nerd-fonts
 cd $prior
+
+# C++ linters/fixers
+sudo apt-get install -y clang-tidy
+sudo apt install -y clang-format

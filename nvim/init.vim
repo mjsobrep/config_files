@@ -233,7 +233,7 @@ let g:ale_fixers = {
             \ 'javascript': ['prettier'],
             \ 'typescript': ['prettier'],
             \ 'typescriptreact': ['prettier'],
-            \ 'cpp':['clang-format'],
+            \ 'cpp':['clangtidy'],
             \ 'tex':['latexindent'],
             \ 'markdown':['prettier'],
             \ 'yaml':['prettier'],
@@ -257,6 +257,7 @@ let g:ale_linters = {
             \ 'r':['lintr'],
             \ 'rmd':['lintr'],
             \ 'xml' :['xmllint'],
+            \ 'cpp' :['gcc','clang']
             \}
 
 let g:ale_linter_aliases = {
