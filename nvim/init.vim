@@ -251,7 +251,7 @@ let g:ale_linters = {
             \'tex':['chktex','proselint','lacheck', 'writegood'],
             \'markdown':['proselint', 'writegood', 'remark_lint'],
             \'javascript': ['eslint'],
-            \'typescript': ['eslint'],
+            \'typescript': ['eslint','tsserver'],
             \ 'typescriptreact': ['eslint'],
             \ 'yaml':['yamllint'],
             \ 'r':['lintr'],
