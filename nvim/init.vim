@@ -229,10 +229,11 @@ let g:ale_linters_explicit=1
 let g:ale_fixers = {
             \ '*': ['remove_trailing_lines', 'trim_whitespace'],
             \ 'python': ['autopep8'],
+            \ 'html': ['prettier'],
             \ 'javascript': ['prettier'],
             \ 'typescript': ['prettier'],
             \ 'typescriptreact': ['prettier'],
-            \ 'cpp':['clang-format'],
+            \ 'cpp':['clangtidy'],
             \ 'tex':['latexindent'],
             \ 'markdown':['prettier'],
             \ 'yaml':['prettier'],
@@ -250,12 +251,13 @@ let g:ale_linters = {
             \'tex':['chktex','proselint','lacheck', 'writegood'],
             \'markdown':['proselint', 'writegood', 'remark_lint'],
             \'javascript': ['eslint'],
-            \'typescript': ['eslint'],
+            \'typescript': ['eslint','tsserver'],
             \ 'typescriptreact': ['eslint'],
             \ 'yaml':['yamllint'],
             \ 'r':['lintr'],
             \ 'rmd':['lintr'],
             \ 'xml' :['xmllint'],
+            \ 'cpp' :['gcc','clang']
             \}
 
 let g:ale_linter_aliases = {
