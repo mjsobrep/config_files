@@ -39,7 +39,7 @@ Plug 'lervag/vimtex'
 
 Plug 'scrooloose/nerdcommenter'
 
-Plug 'heavenshell/vim-pydocstring'
+Plug 'heavenshell/vim-pydocstring', { 'do': 'make install' }
 
 Plug 'rhysd/vim-grammarous' " need to call to hit the server manually
 Plug 'davidbeckingsale/writegood.vim'
@@ -58,6 +58,8 @@ Plug 'ekalinin/Dockerfile.vim'
 Plug 'jceb/vim-orgmode'
 
 Plug 'jalvesaq/Nvim-R'
+
+Plug 'dpelle/vim-LanguageTool'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
