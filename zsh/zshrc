@@ -179,3 +179,8 @@ eval "$(rbenv init -)"
 ### ADB for COZMO ###
 path+=()
 export PATH="$PATH:/home/mjsobrep/android-sdk-linux/platform-tools/"
+
+### ADD CUDA Drivers ###
+export PATH=/usr/local/cuda-10.2/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64\
+                         ${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
