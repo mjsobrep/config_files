@@ -290,6 +290,7 @@ let g:ale_cursor_detail = 0 "shows the error in a window when hovering
 """"" Py Doc Sting """""
 nmap <silent> <Leader>d <Plug>(pydocstring)
 let g:pydocstring_templates_dir = '~/Documents/git/config_files/nvim/pydoc-templates'
+let g:pydocstring_doq_path = '/home/mjsobrep/.local/bin/doq'
 
 """"" Copy and past with system clipboard """"
 set clipboard=unnamedplus
