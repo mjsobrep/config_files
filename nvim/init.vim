@@ -165,15 +165,18 @@ let g:indentLine_setColors = 0
 """"""""" Easier navigation """""""""""
 " all using fzf
 nnoremap <Leader>o :Files<CR>
-nnoremap <Leader>s :Ag<CR>
+nnoremap <Leader>s :Rg<CR>
 nnoremap <Leader>b :Buffers<CR>
 nnoremap <Leader>m :Marks<CR>
 "nnoremap <Leader>t :Tags<CR> " this will search ALL tags in session
 " this will search the tags in the curent file:
 nnoremap <Leader>t :BTags<CR>
 
+"let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 "Make AG only search contents not names (https://github.com/junegunn/fzf.vim/issues/346):
-command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, {'options': '--delimiter : --nth 4..'}, <bang>0)
+"command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, fzf#vim#with_preview({'options': '--delimiter : --nth 4..'}), <bang>0)
+" https://github.com/junegunn/fzf.vim/issues/714#issuecomment-428802659
+command! -bang -nargs=* Rg call fzf#vim#grep("rg --column --line-number --no-heading --color=always --smart-case ".shellescape(<q-args>), 1, fzf#vim#with_preview({'options': '--delimiter : --nth 4..'}), <bang>0)
 
 " Have a history for fzf, use ctrl-n and ctrl-p
 let g:fzf_history_dir = '~/.local/share/fzf-history'
