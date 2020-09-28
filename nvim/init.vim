@@ -61,6 +61,9 @@ Plug 'jceb/vim-orgmode'
 Plug 'jalvesaq/Nvim-R'
 
 Plug 'dpelle/vim-LanguageTool'
+
+" Insert closing of parans and stuff:
+Plug 'jiangmiao/auto-pairs'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
