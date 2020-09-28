@@ -5,7 +5,8 @@ let &packpath = &runtimepath
 " TODO: add python path maybe look at :help python-provider
 
 "changing the leader key
-let mapleader = "'"
+nnoremap <SPACE> <Nop>
+let mapleader = " "
 
 
 """""""""""" PLUGINS """""""""""
