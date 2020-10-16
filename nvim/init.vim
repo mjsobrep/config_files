@@ -5,7 +5,7 @@ let &packpath = &runtimepath
 " TODO: add python path maybe look at :help python-provider
 
 "changing the leader key
-nnoremap <SPACE> <Nop>
+noremap <SPACE> <Nop>
 let mapleader = " "
 
 
@@ -64,6 +64,9 @@ Plug 'dpelle/vim-LanguageTool'
 
 " Insert closing of parans and stuff:
 Plug 'jiangmiao/auto-pairs'
+
+" figure out what key combos are available:
+Plug 'liuchengxu/vim-which-key'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -338,3 +341,10 @@ nmap [h <Plug>(GitGutterPrevHunk)
 """" NVIM-R """"
 let R_in_buffer = 0
 let R_source = '/home/mjsobrep/.local/share/nvim/plugged/Nvim-R/R/tmux_split.vim'
+
+
+""" Which Key """
+let g:mapleader = "\<Space>"
+let g:maplocalleader = '\\'
+nnoremap <silent> <leader>      :<c-u>WhichKey '<Space>'<CR>
+nnoremap <silent> <localleader> :<c-u>WhichKey  ','<CR>
