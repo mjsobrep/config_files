@@ -10,13 +10,13 @@ sudo apt install -y xclip
 
 prior=$(pwd)
 cd ~/Downloads
-wget https://github.com/tmux/tmux/releases/download/2.9a/tmux-2.9a.tar.gz
-tar -xzf tmux-2.9a.tar.gz
-cd tmux-2.9a
-./configure && make
-sudo make install
+curl -s https://api.github.com/repos/tmux/tmux/releases/latest|grep "browser_download_url.*gz" | cut -d : -f 2,3 | tr -d \" | wget -i -
+tar -xzf tmux-*.tar.gz
+cd tmux-*/
+./configure 
+make && sudo make install
 cd ..
-rm -rf tmux-2.9a
+rm -rf tmux-*
 cd $prior
 
 ln -s -f ~/Documents/git/config_files/tmux/tmux.conf ~/.tmux.conf
