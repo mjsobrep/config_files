@@ -55,9 +55,9 @@ nvim +PlugInstall +qall > /dev/null
 # A better, faster version of find, runs all of the searching:
 prior=$(pwd)
 cd ~/Downloads
-wget https://github.com/sharkdp/fd/releases/download/v7.3.0/fd_7.3.0_amd64.deb
-sudo dpkg -i fd_7.3.0_amd64.deb
-rm fd_7.3.0_amd64.deb
+curl -s https://api.github.com/repos/sharkdp/fd/releases/latest|grep "browser_download_url.*fd_.*amd64\.deb" | cut -d : -f 2,3 | tr -d \" | wget -i -
+sudo dpkg -i fd_*_amd64.deb
+rm fd_*_amd64.deb
 cd $prior
 
 # install lsp
@@ -81,7 +81,7 @@ sudo apt install -y clang-format
 # ripgrep
 prior=$(pwd)
 cd ~/Downloads
-curl -LO https://github.com/BurntSushi/ripgrep/releases/download/11.0.2/ripgrep_11.0.2_amd64.deb
-sudo dpkg -i ripgrep_11.0.2_amd64.deb
-rm ripgrep_11.0.2_amd64.deb
+curl -s https://api.github.com/repos/BurntSushi/ripgrep/releases/latest|grep "browser_download_url.*ripgrep_.*amd64\.deb" | cut -d : -f 2,3 | tr -d \" | wget -i -
+sudo dpkg -i ripgrep_*_amd64.deb
+rm ripgrep_*_amd64.deb
 cd $prior
