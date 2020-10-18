@@ -4,7 +4,7 @@ set -e
 
 sudo apt-get update -y && sudo apt-get upgrade -y
 
-sudo apt install -y git curl build-essential autoconf cmake
+sudo apt install -y git curl build-essential autoconf cmake python3-pip python-pip
 pip install --user pipenv pylint autopep8
 pip install --user yamllint
 
