@@ -189,3 +189,5 @@ export LD_LIBRARY_PATH=/usr/local/${CUDA_V}/lib64\
 
 ### Local zshrc ###
 source ~/.zshrc-local
+
+echo 'done loading zshrc'
