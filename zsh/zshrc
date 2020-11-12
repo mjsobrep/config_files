@@ -185,3 +185,7 @@ CUDA_V=$(ls  /usr/local | grep "cuda-.*")
 export PATH=/usr/local/${CUDA_V}/bin${PATH:+:${PATH}}
 export LD_LIBRARY_PATH=/usr/local/${CUDA_V}/lib64\
                          ${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+
+### Local zshrc ###
+source ~/.zshrc-local
