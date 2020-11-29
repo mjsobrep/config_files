@@ -32,3 +32,6 @@ For example, flake. So it is best to source all of the ros stuff
 before opening your text editor. You may find that you also need
 to pip install flake8, etc. after sourcing ROS stuff.
 
+## Display issues
+Your display is being dynamic, but you have a desktop?
+Install arandr, setup a config script, and then run it at startup
