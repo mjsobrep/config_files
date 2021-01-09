@@ -208,6 +208,7 @@ autocmd FileType gitcommit set bufhidden=delete
 """""" LaTeX """""""""""""
 let g:vimtex_compiler_progname = 'nvr'
 let g:vimtex_view_method = 'zathura'
+let g:tex_flavor = 'latex'
 
 """""" Commmenting """"""
 " this is needed for nerd commenter to know what is up:
