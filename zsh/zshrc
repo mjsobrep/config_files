@@ -5,7 +5,6 @@ antigen use oh-my-zsh
 antigen bundle git
 antigen bundle fasd
 antigen bundle vi-mode
-antigen bundle pipenv
 antigen bundle docker
 antigen bundle docker-compose
 
@@ -193,6 +192,12 @@ function aws-penn-login {
     export AWS_PROFILE=011767345660-PennDataScientist
     cd $prior
 }
+
+### pipenv auto complete
+_pipenv() {
+  eval $(env COMMANDLINE="${words[1,$CURRENT]}" _PIPENV_COMPLETE=complete-zsh pipenv)
+}
+compdef _pipenv pipenv
 
 ### Local zshrc ###
 source ~/.zshrc-local
