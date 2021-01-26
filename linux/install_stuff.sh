@@ -1,10 +1,19 @@
 #!/bin/bash
 
 set -e
+shopt -s expand_aliases
 
 sudo apt-get update -y && sudo apt-get upgrade -y
 
-sudo apt install -y git curl build-essential autoconf cmake python3-pip python-pip
+sudo apt-get install -y git curl build-essential autoconf cmake python3-pip
+
+if(($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )==20))
+    then
+        alias pip="pip3"
+    else
+        sudo add-get install -y python-pip
+fi
+
 pip install --user pipenv pylint autopep8
 pip install --user yamllint
 
@@ -32,6 +41,7 @@ export TEXLIVE_INSTALL_TEXDIR=/home/$USER/texlive/$year
 cd $prior
 
 ./zsh/install_zsh.sh
+./node/install_node.sh
 ./nvim/install_neovim.sh
 ./tmux/install_tmux.sh
 

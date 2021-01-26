@@ -1,13 +1,22 @@
 set -e
+shopt -s expand_aliases
 
 # Instal neovim
 sudo apt-get install -y software-properties-common
 sudo add-apt-repository -y ppa:neovim-ppa/stable
 sudo apt-get update -y
 sudo apt-get install -y neovim
-sudo apt-get install -y python-dev python-pip python3-dev python3-pip
+sudo apt-get install -y python3-dev python3-pip
+
 pip3 install pynvim
-pip2 install pynvim
+if(($(cat /etc/os-release | grep VERSION_ID|grep -o '".*"' | sed 's/"//g' | cut -c1-2 )<=18))
+    then
+    	sudo apt-get install -y python-pip python-dev
+	pip2 install pynvim
+    else
+    	alias pip="pip3"
+fi
+
 
 # bring in neovim config
 mkdir -p ~/.config/nvim
