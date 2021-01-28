@@ -87,6 +87,9 @@ cd $prior
 sudo apt-get install -y clang-tidy
 sudo apt install -y clang-format
 
+# Shell linters/fixers
+sudo apt-get install -y shellcheck
+
 # ripgrep
 prior=$(pwd)
 cd ~/Downloads

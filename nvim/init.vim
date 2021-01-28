@@ -270,7 +270,10 @@ let g:ale_linters = {
             \ 'r':['lintr'],
             \ 'rmd':['lintr'],
             \ 'xml' :['xmllint'],
-            \ 'cpp' :['gcc','clang']
+            \ 'cpp' :['gcc','clang'],
+            \ 'bash' :['shellcheck'],
+            \ 'sh' :['shellcheck'],
+            \ 'zsh' :['shellcheck']
             \}
 
 let g:ale_linter_aliases = {
