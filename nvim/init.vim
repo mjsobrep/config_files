@@ -260,7 +260,7 @@ let b:ale_javascript_prettier_options = '--prose-wrap always'
 "Prettier is needed for js/tsx: https://prettier.io/docs/en/install.html
 "I was using Alex in a few places to find insensitive words, but it was annoying as hell
 let g:ale_linters = {
-            \'python':['flake','pylint','pyls'],
+            \'python':['flake','pylint'],
             \'tex':['chktex','proselint','lacheck', 'writegood'],
             \'markdown':['proselint', 'writegood', 'remark_lint'],
             \'javascript': ['eslint'],
