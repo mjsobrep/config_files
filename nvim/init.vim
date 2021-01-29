@@ -249,7 +249,7 @@ let g:ale_fixers = {
             \ 'cpp':['clangtidy'],
             \ 'tex':['latexindent'],
             \ 'markdown':['prettier'],
-            \ 'yaml':['prettier'],
+            \ 'yaml':['prettier','yamlfix'],
             \ 'r' :['styler'],
             \ 'rmd' :['styler'],
             \ 'xml' :['xmllint'],

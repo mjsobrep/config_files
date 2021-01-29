@@ -90,6 +90,9 @@ sudo apt install -y clang-format
 # Shell linters/fixers
 sudo apt-get install -y shellcheck
 
+# yaml fixer
+pip install --user yamlfix ruamel_yaml
+
 # ripgrep
 prior=$(pwd)
 cd ~/Downloads
