@@ -172,8 +172,8 @@ function ssh-home {
 
 ### Ruby ###
 # RBENV:
-#export PATH="$HOME/.rbenv/bin:$PATH"
-#eval "$(rbenv init -)"
+export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"
 
 ### ADB for COZMO ###
 path+=()
