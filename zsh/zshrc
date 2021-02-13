@@ -189,7 +189,8 @@ function aws-penn-login {
     prior=$(pwd)
     cd ~/Documents/git/aws-federated-auth
     pipenv run python aws-federated-auth.py
-    export AWS_PROFILE=aws-rehab-robotics-flo-seas-acct-PennDataScientist    cd $prior
+    export AWS_PROFILE=aws-rehab-robotics-flo-seas-acct-PennDataScientist
+    cd $prior
 }
 
 ### pipenv auto complete
