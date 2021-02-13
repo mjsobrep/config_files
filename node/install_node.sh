@@ -8,3 +8,6 @@ nvm install --lts
 
 # load npm onto path:
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# get remark lint for linting markdown
+npm -g install remark remark-lint remark-cli remark-preset-lint-recommended remark-lint-ordered-list-marker-value remark-stringify
