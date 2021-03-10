@@ -1,4 +1,3 @@
 1.  Install R
 2.  Install R-studio
-3.  install usethis
-4.
+3.  Link the Renviron file to be ~/.Renviron 
