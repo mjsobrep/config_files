@@ -1,0 +1,2 @@
+R_PDFLATEXCMD=/home/mjsobrep/texlive/2020/bin/x86_64-linux/pdflatex
+R_LATEXCMD=/home/mjsobrep/texlive/2020/bin/x86_64-linux/latex

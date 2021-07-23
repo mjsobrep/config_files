@@ -1,6 +1,6 @@
 DEVICE_NUM=/dev/video0
 v4l2-ctl -d $DEVICE_NUM --set-ctrl=white_balance_temperature_auto=0
-v4l2-ctl -d $DEVICE_NUM --set-ctrl=white_balance_temperature=4200
+v4l2-ctl -d $DEVICE_NUM --set-ctrl=white_balance_temperature=3700
 
 #v4l2-ctl -d /dev/video0 --set-ctrl=exposure_auto=1
 #v4l2-ctl -d /dev/video0 --set-ctrl=exposure_auto_priority=0

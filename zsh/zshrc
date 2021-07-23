@@ -104,7 +104,7 @@ function connect_to_robot {
 
 ########## SSH into flo
 function ssh-flo {
-    ssh nuc-admin@flo-nuc
+    ssh -X nuc-admin@flo-nuc
 }
 
 
@@ -189,7 +189,8 @@ function aws-penn-login {
     prior=$(pwd)
     cd ~/Documents/git/aws-federated-auth
     pipenv run python aws-federated-auth.py
-    export AWS_PROFILE=aws-rehab-robotics-flo-seas-acct-PennDataScientist    cd $prior
+    export AWS_PROFILE=aws-rehab-robotics-flo-seas-acct-PennDataScientist
+    cd $prior
 }
 
 ### pipenv auto complete

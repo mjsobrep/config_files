@@ -248,7 +248,7 @@ let g:ale_fixers = {
             \ 'typescriptreact': ['prettier'],
             \ 'cpp':['clang-format'],
             \ 'tex':['latexindent'],
-            \ 'markdown':['prettier'],
+            \ 'markdown':['prettier','remark-lint'],
             \ 'yaml':['prettier','yamlfix'],
             \ 'r' :['styler'],
             \ 'rmd' :['styler'],
@@ -262,7 +262,7 @@ let b:ale_javascript_prettier_options = '--prose-wrap always'
 let g:ale_linters = {
             \'python':['flake','pylint'],
             \'tex':['chktex','proselint','lacheck', 'writegood'],
-            \'markdown':['proselint', 'writegood', 'remark_lint'],
+            \'markdown':['proselint', 'writegood'],
             \'javascript': ['eslint'],
             \'typescript': ['eslint','tsserver'],
             \ 'typescriptreact': ['eslint'],
