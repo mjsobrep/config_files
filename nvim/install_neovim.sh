@@ -93,6 +93,9 @@ sudo apt-get install -y shellcheck
 # yaml fixer
 pip install --user yamlfix ruamel_yaml
 
+# xml fixer
+sudo apt-get install -y libxml2-utils
+
 # ripgrep
 prior=$(pwd)
 cd ~/Downloads
