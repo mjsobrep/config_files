@@ -246,7 +246,7 @@ let g:ale_fixers = {
             \ 'javascript': ['prettier'],
             \ 'typescript': ['prettier'],
             \ 'typescriptreact': ['prettier'],
-            \ 'cpp':['clangtidy'],
+            \ 'cpp':['clang-format'],
             \ 'tex':['latexindent'],
             \ 'markdown':['prettier','remark-lint'],
             \ 'yaml':['prettier','yamlfix'],
