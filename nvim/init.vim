@@ -238,6 +238,8 @@ command! ToggleSpelling call FlipSpelling()
 """"" Linting with ale """"'
 let g:ale_fix_on_save = 1
 let g:ale_completion_enabled = 1
+let g:ale_completion_autoimport = 1
+set omnifunc=ale#completion#OmniFunc
 let g:ale_linters_explicit=1
 let g:ale_fixers = {
             \ '*': ['remove_trailing_lines', 'trim_whitespace'],
