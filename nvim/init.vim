@@ -67,6 +67,8 @@ Plug 'jiangmiao/auto-pairs'
 
 " figure out what key combos are available:
 Plug 'liuchengxu/vim-which-key'
+
+Plug 'valloric/youcompleteme'
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -237,9 +239,9 @@ command! ToggleSpelling call FlipSpelling()
 
 """"" Linting with ale """"'
 let g:ale_fix_on_save = 1
-let g:ale_completion_enabled = 1
-let g:ale_completion_autoimport = 1
-set omnifunc=ale#completion#OmniFunc
+"let g:ale_completion_enabled = 1
+"let g:ale_completion_autoimport = 1
+"set omnifunc=ale#completion#OmniFunc
 let g:ale_linters_explicit=1
 let g:ale_fixers = {
             \ '*': ['remove_trailing_lines', 'trim_whitespace'],
@@ -295,7 +297,7 @@ let g:airline#extensions#ale#enabled = 1
 
 let g:ale_echo_msg_format = '[%linter%] %s'
 "To fix problems with over eagerly inserting text:
-set completeopt=menu,menuone,preview,noselect,noinsert
+"set completeopt=menu,menuone,preview,noselect,noinsert
 "let g:ale_set_ballons = 1 should allow info to pop up when hovering
 let g:ale_close_preview_on_insert = 0  "closes the ale preview when in insert mode
 let g:ale_cursor_detail = 0 "shows the error in a window when hovering
@@ -354,3 +356,6 @@ let g:mapleader = "\<Space>"
 let g:maplocalleader = '\\'
 nnoremap <silent> <leader>      :<c-u>WhichKey '<Space>'<CR>
 nnoremap <silent> <localleader> :<c-u>WhichKey  ','<CR>
+
+""" keep lines above and below """
+:set scrolloff=7

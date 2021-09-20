@@ -58,6 +58,7 @@ sudo apt install -y silversearcher-ag
 # sudo apt install texlive-full
 sudo apt install -y xdotool zathura
 
+
 # hop into vim and install everything
 nvim +PlugInstall +qall > /dev/null
 
@@ -102,4 +103,12 @@ cd ~/Downloads
 curl -s https://api.github.com/repos/BurntSushi/ripgrep/releases/latest|grep "browser_download_url.*ripgrep_.*amd64\.deb" | cut -d : -f 2,3 | tr -d \" | wget -i -
 sudo dpkg -i ripgrep_*_amd64.deb
 rm ripgrep_*_amd64.deb
+cd $prior
+
+# YCM (has to come after ycm plugin install)
+sudo apt install build-essential cmake vim-nox python3-dev
+sudo apt install mono-complete golang nodejs default-jdk npm
+prior=$(pwd)
+cd ~/.local/share/nvim/plugged/youcompleteme
+python3 install.py --all
 cd $prior
