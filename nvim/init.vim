@@ -359,3 +359,7 @@ nnoremap <silent> <localleader> :<c-u>WhichKey  ','<CR>
 
 """ keep lines above and below """
 :set scrolloff=7
+
+""" You Complet Me (YCM) """
+let g:ycm_autoclose_preview_window_after_insertion = 1
+:set pumblend=25
