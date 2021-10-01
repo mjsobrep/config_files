@@ -202,4 +202,9 @@ compdef _pipenv pipenv
 ### Local zshrc ###
 source ~/.zshrc-local
 
+### OCI Tab Completion ###
+export PATH=/home/mjsobrep/bin:$PATH
+
+[[ -e "/home/mjsobrep/lib/oracle-cli/lib/python3.8/site-packages/oci_cli/bin/oci_autocomplete.sh" ]] && source "/home/mjsobrep/lib/oracle-cli/lib/python3.8/site-packages/oci_cli/bin/oci_autocomplete.sh"
+
 echo 'done loading zshrc'
