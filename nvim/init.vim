@@ -291,6 +291,9 @@ let g:ale_linter_aliases = {
 
 nmap <silent> ]a :ALENext<cr>
 nmap <silent> [a :ALEPrevious<cr>
+
+command! ALEToggleFixer execute "let g:ale_fix_on_save = get(g:, 'ale_fix_on_save', 0) ? 0 : 1"
+
 nmap <silent> <Leader>h <Plug>(ale_hover)
 
 let g:airline#extensions#ale#enabled = 1
