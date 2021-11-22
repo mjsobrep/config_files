@@ -106,8 +106,8 @@ rm ripgrep_*_amd64.deb
 cd $prior
 
 # YCM (has to come after ycm plugin install)
-sudo apt install build-essential cmake vim-nox python3-dev
-sudo apt install mono-complete golang nodejs default-jdk npm
+sudo apt-get install -y build-essential cmake vim-nox python3-dev
+sudo apt-get install -y mono-complete golang nodejs default-jdk npm
 prior=$(pwd)
 cd ~/.local/share/nvim/plugged/youcompleteme
 python3 install.py --all
