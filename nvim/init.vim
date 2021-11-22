@@ -257,6 +257,7 @@ let g:ale_fixers = {
             \ 'r' :['styler'],
             \ 'rmd' :['styler'],
             \ 'xml' :['xmllint'],
+            \ 'json' :['jq']
             \}
 
 " This will make prettier always wrap text:
@@ -277,7 +278,8 @@ let g:ale_linters = {
             \ 'cpp' :['gcc','clang'],
             \ 'bash' :['shellcheck'],
             \ 'sh' :['shellcheck'],
-            \ 'zsh' :['shellcheck']
+            \ 'zsh' :['shellcheck'],
+            \ 'json' :['jq']
             \}
 
 let g:ale_linter_aliases = {
