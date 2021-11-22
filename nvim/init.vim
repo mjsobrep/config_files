@@ -85,7 +85,7 @@ set splitbelow
 set splitright
 
 " set rnu " turns on relative numbering
-set rnu
+"set rnu
 
 " use ; for :
 nnoremap ; :
