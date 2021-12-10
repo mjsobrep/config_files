@@ -202,12 +202,16 @@ compdef _pipenv pipenv
 ### Local zshrc ###
 source ~/.zshrc-local
 
-### OCI Tab Completion ###
+### OCI ###
+# Tab Completion
 export PATH=/home/mjsobrep/bin:$PATH
 
 [[ -e "/home/mjsobrep/lib/oracle-cli/lib/python3.8/site-packages/oci_cli/bin/oci_autocomplete.sh" ]] && source "/home/mjsobrep/lib/oracle-cli/lib/python3.8/site-packages/oci_cli/bin/oci_autocomplete.sh"
 
-## OCI alias for token usage:
+# OCI alias for token usage:
 export OCI_WORKING_COMPARTMENT="ocid1.compartment.oc1..aaaaaaaadznuoh3ntsva2jsj453wwmemd4t2k5rnwniuzkliq7evffxgprua"
+
+# OCI token run
+source "$HOME/Documents/git/oci-cli-helpers/auth/oci-token-run.sh"
 
 echo 'done loading zshrc'
