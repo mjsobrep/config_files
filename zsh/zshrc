@@ -212,6 +212,9 @@ export PATH=/home/mjsobrep/bin:$PATH
 export OCI_WORKING_COMPARTMENT="ocid1.compartment.oc1..aaaaaaaadznuoh3ntsva2jsj453wwmemd4t2k5rnwniuzkliq7evffxgprua"
 
 # OCI token run
-source "$HOME/Documents/git/oci-cli-helpers/auth/oci-token-run.sh"
+export OCI_CLI_PROFILE='token-oci-profile'
+export OCI_CLI_CONFIG_FILE="$HOME/.oci/config"
+export OCI_CLI_AUTH='security_token'
+export KUBECONFIG="$HOME/.kube/config"
 
 echo 'done loading zshrc'
