@@ -69,6 +69,10 @@ Plug 'jiangmiao/auto-pairs'
 Plug 'liuchengxu/vim-which-key'
 
 Plug 'valloric/youcompleteme'
+
+" better python syntax highlighting
+Plug 'numirias/semshi', { 'do': ':UpdateRemotePlugins' }
+
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -290,6 +294,8 @@ let g:ale_linter_aliases = {
             \'latex':'tex',
             \'rmarkdown': 'r',
             \}
+
+let g:ale_python_pylint_options = "--init-hook='import sys; sys.path.append(\".\")'"
 
 nmap <silent> ]a :ALENext<cr>
 nmap <silent> [a :ALEPrevious<cr>
