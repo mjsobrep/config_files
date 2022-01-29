@@ -231,7 +231,7 @@ let g:spelling_state = 'off'
 
 function! FlipSpelling()
     if g:spelling_state=='off'
-        set spell spelllang=en_us
+        set spell spelllang=en
         let g:spelling_state = 'on'
     elseif g:spelling_state=='on'
         set nospell
