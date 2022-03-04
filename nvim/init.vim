@@ -177,13 +177,15 @@ let g:indentLine_setColors = 0
 
 """"""""" Easier navigation """""""""""
 " all using fzf
-nnoremap <Leader>o :Files<CR>
-nnoremap <Leader>s :Rg<CR>
-nnoremap <Leader>b :Buffers<CR>
-nnoremap <Leader>m :Marks<CR>
+nnoremap <Leader>sf :Files<CR>
+nnoremap <Leader>st :Rg<CR>
+nnoremap <Leader>sb :Buffers<CR>
+nnoremap <Leader>sm :Marks<CR>
 "nnoremap <Leader>t :Tags<CR> " this will search ALL tags in session
 " this will search the tags in the curent file:
-nnoremap <Leader>t :BTags<CR>
+nnoremap <Leader>st :BTags<CR>
+nnoremap <Leader>sh :History:<CR>
+nnoremap <Leader>sc :Commands<CR>
 
 "let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 "Make AG only search contents not names (https://github.com/junegunn/fzf.vim/issues/346):
