@@ -105,6 +105,16 @@ set smartcase " pat attention to case if any caps present
 "   nnoremap <silent> <C-L> :nohlsearch<CR><C-L>
 " endif
 
+""" Which Key """
+let g:mapleader = "\<Space>"
+let g:maplocalleader = '\\'
+let g:which_key_map =  {}
+call which_key#register('<Space>', "g:which_key_map")
+nnoremap <silent> <leader>      :<c-u>WhichKey '<Space>'<CR>
+nnoremap <silent> <localleader> :<c-u>WhichKey  ','<CR>
+vnoremap <silent> <leader> :<c-u>WhichKeyVisual '<Space>'<CR>
+
+
 """ Moving through buffers
 :nnoremap <Tab> :bnext<CR>
 :nnoremap <S-Tab> :bprevious<CR>
@@ -178,14 +188,42 @@ let g:indentLine_setColors = 0
 """"""""" Easier navigation """""""""""
 " all using fzf
 nnoremap <Leader>sf :Files<CR>
-nnoremap <Leader>st :Rg<CR>
+nnoremap <Leader>ssg :Rg<CR>
+nnoremap <Leader>ssf :BLines<CR>
 nnoremap <Leader>sb :Buffers<CR>
 nnoremap <Leader>sm :Marks<CR>
 "nnoremap <Leader>t :Tags<CR> " this will search ALL tags in session
 " this will search the tags in the curent file:
-nnoremap <Leader>st :BTags<CR>
+nnoremap <Leader>stf :BTags<CR>
+nnoremap <Leader>stp :Tags<CR>
 nnoremap <Leader>sh :History:<CR>
 nnoremap <Leader>sc :Commands<CR>
+nnoremap <Leader>sgc :Commits<CR>
+nnoremap <Leader>sgf :BCommits<CR>
+
+let g:which_key_map.s = {
+            \ 'name': '+ Search',
+            \ 'f': 'File Names',
+            \ 's': {
+                \ 'name': '+ Search Text',
+                \ 'g': 'globally',
+                \ 'f': 'in open file',
+                \ },
+            \ 'b': 'Open Buffers',
+            \ 'm': 'Marks',
+            \ 't': {
+                \ 'name': '+ Tags',
+                \ 'f': 'in open file',
+                \ 'p': 'in project',
+                \ },
+            \ 'h': 'Command History',
+            \ 'c': 'Available Commands',
+            \ 'g': {
+                \ 'name': '+ Git Commits',
+                \ 'c': 'in repository',
+                \ 'f': 'in open file',
+                \ }
+            \ }
 
 "let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 "Make AG only search contents not names (https://github.com/junegunn/fzf.vim/issues/346):
@@ -364,11 +402,6 @@ let R_in_buffer = 0
 let R_source = '/home/mjsobrep/.local/share/nvim/plugged/Nvim-R/R/tmux_split.vim'
 let R_assign = 0
 
-""" Which Key """
-let g:mapleader = "\<Space>"
-let g:maplocalleader = '\\'
-nnoremap <silent> <leader>      :<c-u>WhichKey '<Space>'<CR>
-nnoremap <silent> <localleader> :<c-u>WhichKey  ','<CR>
 
 """ keep lines above and below """
 :set scrolloff=7
