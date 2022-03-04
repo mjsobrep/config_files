@@ -362,7 +362,7 @@ nmap [h <Plug>(GitGutterPrevHunk)
 """" NVIM-R """"
 let R_in_buffer = 0
 let R_source = '/home/mjsobrep/.local/share/nvim/plugged/Nvim-R/R/tmux_split.vim'
-
+let R_assign = 0
 
 """ Which Key """
 let g:mapleader = "\<Space>"
