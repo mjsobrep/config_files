@@ -180,7 +180,7 @@ path+=()
 export PATH="$PATH:/home/mjsobrep/android-sdk-linux/platform-tools/"
 
 ### ADD CUDA Drivers ###
-CUDA_V=$(ls  /usr/local | grep "cuda-.*")
+CUDA_V=$(ls  /usr/local | grep "cuda-.*" | tail -1)
 PATH=/usr/local/${CUDA_V}/bin${PATH:+:${PATH}}; export PATH
 LD_LIBRARY_PATH=/usr/local/${CUDA_V}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}; export LD_LIBRARY_PATH
 
