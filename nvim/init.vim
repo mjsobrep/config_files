@@ -253,9 +253,41 @@ autocmd FileType gitcommit set bufhidden=delete
 
 """""" LaTeX """""""""""""
 let g:vimtex_compiler_progname = 'nvr'
+"let g:vimtex_latexmk_callback=1 " needed for zathura_alternative
+"let g:vimtex_view_use_temp_files = 1
 let g:vimtex_view_method = 'zathura'
 let g:tex_flavor = 'latex'
 
+"let g:vimtex_compiler_latexmk = {
+"        \ 'build_dir' : "tex-build",
+"        \ 'callback' : 1,
+"        \ 'continuous' : 1,
+"        \ 'executable' : 'latexmk',
+"        \ 'hooks' : [],
+"        \ 'options' : [
+"        \   '-pdf',
+"        \   '-shell-escape',
+"        \   '-verbose',
+"        \   '-file-line-error',
+"        \   '-synctex=1',
+"        \   '-interaction=nonstopmode',
+"        \ ],
+"        \}
+
+let g:vimtex_compiler_latexmk = {
+        \ 'build_dir' : 'tex-build',
+        \ 'callback' : 1,
+        \ 'continuous' : 1,
+        \ 'executable' : 'latexmk',
+        \ 'hooks' : [],
+        \ 'options' : [
+        \   '-shell-escape',
+        \   '-verbose',
+        \   '-file-line-error',
+        \   '-synctex=1',
+        \   '-interaction=nonstopmode',
+        \ ],
+        \}
 """""" Commmenting """"""
 " this is needed for nerd commenter to know what is up:
 filetype plugin on
