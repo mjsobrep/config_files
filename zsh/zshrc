@@ -217,4 +217,8 @@ export OCI_CLI_CONFIG_FILE="$HOME/.oci/config"
 export OCI_CLI_AUTH='security_token'
 export KUBECONFIG="$HOME/.kube/config"
 
+
+# GOLANG
+export PATH=$PATH:/usr/local/go/bin
+
 echo 'done loading zshrc'
