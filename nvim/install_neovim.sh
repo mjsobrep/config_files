@@ -110,5 +110,6 @@ sudo apt-get install -y build-essential cmake vim-nox python3-dev
 sudo apt-get install -y mono-complete golang nodejs default-jdk npm
 prior=$(pwd)
 cd ~/.local/share/nvim/plugged/youcompleteme
-python3 install.py --all
+python3 install.py --clang-completer --ts-completer
+#python3 install.py --all
 cd $prior
