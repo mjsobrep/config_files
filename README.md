@@ -35,3 +35,7 @@ to pip install flake8, etc. after sourcing ROS stuff.
 ## Display issues
 Your display is being dynamic, but you have a desktop?
 Install arandr, setup a config script, and then run it at startup
+
+## Git credentials
+
+Use [git credential manager core](https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md)
