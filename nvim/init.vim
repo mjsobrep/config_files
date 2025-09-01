@@ -73,6 +73,8 @@ Plug 'valloric/youcompleteme'
 " better python syntax highlighting
 Plug 'numirias/semshi', { 'do': ':UpdateRemotePlugins' }
 
+Plug 'github/copilot.vim'
+
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -341,11 +343,11 @@ let b:ale_javascript_prettier_options = '--prose-wrap always'
 "Prettier is needed for js/tsx: https://prettier.io/docs/en/install.html
 "I was using Alex in a few places to find insensitive words, but it was annoying as hell
 let g:ale_linters = {
-            \'python':['flake','pylint'],
-            \'tex':['chktex','proselint','lacheck', 'writegood'],
-            \'markdown':['proselint', 'writegood'],
-            \'javascript': ['eslint'],
-            \'typescript': ['eslint','tsserver'],
+            \ 'python':['flake','pylint'],
+            \ 'tex':['chktex','proselint','lacheck', 'writegood'],
+            \ 'markdown':['proselint', 'writegood'],
+            \ 'javascript': ['eslint'],
+            \ 'typescript': ['eslint','tsserver'],
             \ 'typescriptreact': ['eslint'],
             \ 'yaml':['yamllint'],
             \ 'r':['lintr'],
@@ -359,12 +361,12 @@ let g:ale_linters = {
             \}
 
 let g:ale_linter_aliases = {
-            \'jsx': 'javascript',
-            \'tsx': 'typescript',
-            \'arduino':'cpp',
-            \'plaintex':'tex',
-            \'latex':'tex',
-            \'rmarkdown': 'r',
+            \ 'jsx': 'javascript',
+            \ 'tsx': 'typescript',
+            \ 'arduino':'cpp',
+            \ 'plaintex':'tex',
+            \ 'latex':'tex',
+            \ 'rmarkdown': 'r',
             \}
 
 let g:ale_python_pylint_options = "--init-hook='import sys; sys.path.append(\".\")'"

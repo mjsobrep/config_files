@@ -1,24 +1,31 @@
 # Useful general linux tweaks
 
 ## FASD
+
 jump around with shortcuts
 sudo add-apt-repository ppa:aacebedo/fasd
 sudo apt-get update
 sudo apt-get install fasd
 
-
 ## remapping keyboard on linux
-This is all coming from: https://wiki.archlinux.org/index.php/X_keyboard_extension
 
-There is a list of available keysyms that seem to work here: http://docs.ev3dev.org/projects/grx/en/ev3dev-stretch/c-api/input_keysyms.html
+### on Wayland
+
+Use keyd - there is a config file in the keyboards folder
+
+### on X11
+
+This is all coming from: https://wiki.archlinux.org/index.php/X\_keyboard\_extension
+
+There is a list of available keysyms that seem to work here: http://docs.ev3dev.org/projects/grx/en/ev3dev-stretch/c-api/input\_keysyms.html
 
 This is being done manually to allow you to start with the configuration that is already there on your computer to prevent compatibility issues with different keyboards.
 Examples of prior runs of this are seen in `config_files/linux/keyboards`
 
-
 Begin by running `xkbcomp $DISPLAY output.xkb` to get your current keyboard
 settings.
 Then add:
+
 ```c
     interpret osfLeft{
         repeat= True;
@@ -49,9 +56,11 @@ Then add:
         action = RedirectKey(keycode=<ESC>, clearmodifiers=Lock);
     };
 ```
+
 to the compatibility section of the generated file.
 
 To the bottom of the types section, add:
+
 ```c
    type "CUST_CAPSLOCK" {
        modifiers= Shift+Lock;
@@ -71,7 +80,6 @@ To the bottom of the types section, add:
 Search for `interpret Caps_Lock` and change the `LockMods` to `SetMods`
 so that caps lock only sets the modifier, doesn't lock it.
 
-
 To allow capslock + WASD to work as arrow keys: edit the keys `<AD02>`, `<AC01>`, `<AC02>`, `<AC03>` to have type `CUST_CAPSLOCK` and have respectively `osfUp`, `osfLeft`, `osfDown`, `osfRight` in the third position.
 
 To allow capslock + HJKL to work as arrow keys: edit the keys `<AC06>`, `<AC07>`, `<AC08>`, `<AC09>` to have type `CUST_CAPSLOCK` and have respectively `osfLeft`, `osfDown`, `osfUp`, `osfRight` in the third position.
@@ -85,11 +93,13 @@ To turn the numlock key into a delete key and make capslock + numlock make the `
 Now upload the changed file back into the server with: `xkbcomp output.xkb $DISPLAY`.
 
 If everything works, put file somewhere, `~/.Xkeymap` works and create a script for example named `~/start_keyboard.sh` with:
+
 ```bash
 #!/bin/bash
 
 xkbcomp ~/.Xkeymap $DISPLAY
 ```
+
 Make it executable (`chmod u+x ~/start_keyboard.sh`) and add the script to your startup applications.
 
 ### Old Way:
@@ -103,12 +113,14 @@ after the backslash key
 Now done in bashrc:
 Make a new file called ~/.Xmodmap and put in it:
 clear Lock
-keycode 66 = ISO_Level3_Shift
+keycode 66 = ISO\_Level3\_Shift
 
 #### Make it start when you login:
+
 Whenever a shell is opened, this will get started, so just open a shell at some point
 
 ## Remote control
+
 Can use mintty+x11 window manager on windows. Works well but maybe slow
 
 Can use NX: gives you all of your windows, which sucks

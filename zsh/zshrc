@@ -10,7 +10,9 @@ antigen bundle docker-compose
 
 antigen bundle zsh-users/zsh-syntax-highlighting
 
-antigen theme denysdovhan/spaceship-prompt
+antigen theme spaceship-prompt/spaceship-prompt
+
+antigen bundle spaceship-prompt/spaceship-vi-mode@main
 
 antigen apply
 
@@ -110,14 +112,14 @@ function ssh-flo {
 
 ###### Adding Tex to Path #####
 # If we used sudo to install:
-path+=('/usr/local/texlive/2018/bin/x86_64-linux')
-manpath+=('/usr/local/texlive/2018/texmf-dist/doc/man')
-infopath+=('/usr/local/texlive/2018/texmf-dist/doc/info')
-# If we did a user install (as done in the install script)
-read year <<< $(ls /home/$USER/texlive | grep 20)
-path+=("/home/$USER/texlive/$year/bin/x86_64-linux")
-manpath+=("/home/$USER/texlive/$year/texmf-dist/doc/man")
-infopath+=("/home/$USER/texlive/$year/texmf-dist/doc/info")
+#path+=('/usr/local/texlive/2018/bin/x86_64-linux')
+#manpath+=('/usr/local/texlive/2018/texmf-dist/doc/man')
+#infopath+=('/usr/local/texlive/2018/texmf-dist/doc/info')
+## If we did a user install (as done in the install script)
+#read year <<< $(ls /home/$USER/texlive | grep 20)
+#path+=("/home/$USER/texlive/$year/bin/x86_64-linux")
+#manpath+=("/home/$USER/texlive/$year/texmf-dist/doc/man")
+#infopath+=("/home/$USER/texlive/$year/texmf-dist/doc/info")
 
 #### Adding NVR to path ####
 path+=('/home/mjsobrep/.local/bin')
@@ -149,6 +151,12 @@ NPM_PACKAGES="${HOME}/.npm-packages"
 
 export PATH="$NPM_PACKAGES/bin:$PATH"
 
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
+#export NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/ZscalerRootCertificate-2048-SHA256.crt
+#export REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/ZscalerRootCertificate-2048-SHA256.crt
+
 ## Ruby
 #export GEM_HOME="$HOME/gems"
 #export PATH="$HOME/gems/bin:$PATH"
@@ -172,8 +180,8 @@ function ssh-home {
 
 ### Ruby ###
 # RBENV:
-export PATH="$HOME/.rbenv/bin:$PATH"
-eval "$(rbenv init -)"
+#export PATH="$HOME/.rbenv/bin:$PATH"
+#eval "$(rbenv init -)"
 
 ### ADB for COZMO ###
 path+=()
@@ -199,8 +207,10 @@ _pipenv() {
 }
 compdef _pipenv pipenv
 
+export PIPENV_VENV_IN_PROJECT=1
+
 ### Local zshrc ###
-source ~/.zshrc-local
+#source ~/.zshrc-local
 
 ### OCI ###
 # Tab Completion
@@ -220,5 +230,69 @@ export KUBECONFIG="$HOME/.kube/config"
 
 # GOLANG
 export PATH=$PATH:/usr/local/go/bin
+
+# configure spaceship
+#spaceship remove  time           # Time stamps section
+#spaceship remove  user           # Username section
+#spaceship remove  dir            # Current directory section
+#spaceship remove  host           # Hostname section
+#spaceship remove  git            # Git section (git_branch + git_status)
+spaceship remove  hg             # Mercurial section (hg_branch  + hg_status)
+#spaceship remove  package        # Package version
+spaceship remove  node           # Node.js section
+spaceship remove  bun            # Bun section
+spaceship remove  deno           # Deno section
+spaceship remove  ruby           # Ruby section
+#spaceship remove  python         # Python section
+spaceship remove  elm            # Elm section
+spaceship remove  elixir         # Elixir section
+spaceship remove  xcode          # Xcode section
+spaceship remove  swift          # Swift section
+spaceship remove  golang         # Go section
+spaceship remove  perl           # Perl section
+spaceship remove  php            # PHP section
+spaceship remove  rust           # Rust section
+spaceship remove  haskell        # Haskell Stack section
+spaceship remove  scala          # Scala section
+spaceship remove  kotlin         # Kotlin section
+spaceship remove  java           # Java section
+spaceship remove  lua            # Lua section
+spaceship remove  dart           # Dart section
+spaceship remove  julia          # Julia section
+spaceship remove  crystal        # Crystal section
+#spaceship remove  docker         # Docker section
+#spaceship remove  docker_compose # Docker section
+spaceship remove  aws            # Amazon Web Services section
+spaceship remove  gcloud         # Google Cloud Platform section
+spaceship remove  azure          # Azure section
+#spaceship remove  venv           # virtualenv section
+spaceship remove  conda          # conda virtualenv section
+spaceship remove  dotnet         # .NET section
+spaceship remove  ocaml          # OCaml section
+spaceship remove  vlang          # V section
+spaceship remove  zig            # Zig section
+spaceship remove  purescript     # PureScript section
+spaceship remove  erlang         # Erlang section
+spaceship remove  kubectl        # Kubectl context section
+spaceship remove  ansible        # Ansible section
+#spaceship remove  terraform      # Terraform workspace section
+spaceship remove  pulumi         # Pulumi stack section
+spaceship remove  ibmcloud       # IBM Cloud section
+#spaceship remove  nix_shell      # Nix shell
+spaceship remove  gnu_screen     # GNU Screen section
+#spaceship remove  exec_time      # Execution time
+#spaceship remove  async          # Async jobs indicator
+#spaceship remove  line_sep       # Line break
+#spaceship remove  battery        # Battery level and status
+#spaceship remove  jobs           # Background jobs indicator
+#spaceship remove  exit_code      # Exit code section
+#spaceship remove  sudo           # Sudo indicator
+#spaceship remove  char           # Prompt character
+spaceship add --before char vi_mode
+eval spaceship_vi_mode_enable
+
+# handle keychain for ssh
+#keychain --quiet --nogui ~/.ssh/id_ed25519
+#source ~/.keychain/$(hostname)-sh
 
 echo 'done loading zshrc'
