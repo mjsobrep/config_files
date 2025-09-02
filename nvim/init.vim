@@ -323,7 +323,7 @@ let g:ale_fix_on_save = 1
 let g:ale_linters_explicit=1
 let g:ale_fixers = {
             \ '*': ['remove_trailing_lines', 'trim_whitespace'],
-            \ 'python': ['autopep8'],
+            \ 'python': ['ruff','ruff_format'],
             \ 'html': ['prettier'],
             \ 'javascript': ['prettier'],
             \ 'typescript': ['prettier'],
@@ -343,7 +343,7 @@ let b:ale_javascript_prettier_options = '--prose-wrap always'
 "Prettier is needed for js/tsx: https://prettier.io/docs/en/install.html
 "I was using Alex in a few places to find insensitive words, but it was annoying as hell
 let g:ale_linters = {
-            \ 'python':['flake','pylint'],
+            \ 'python':['ruff'],
             \ 'tex':['chktex','proselint','lacheck', 'writegood'],
             \ 'markdown':['proselint', 'writegood'],
             \ 'javascript': ['eslint'],
@@ -369,7 +369,7 @@ let g:ale_linter_aliases = {
             \ 'rmarkdown': 'r',
             \}
 
-let g:ale_python_pylint_options = "--init-hook='import sys; sys.path.append(\".\")'"
+"let g:ale_python_pylint_options = "--init-hook='import sys; sys.path.append(\".\")'"
 
 nmap <silent> ]a :ALENext<cr>
 nmap <silent> [a :ALEPrevious<cr>
