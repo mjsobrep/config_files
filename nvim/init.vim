@@ -36,7 +36,11 @@ Plug 'junegunn/fzf.vim'
 
 Plug 'christoomey/vim-tmux-navigator'
 
-Plug 'lervag/vimtex'
+if has('nvim-0.10')
+  Plug 'lervag/vimtex'
+else
+  Plug 'lervag/vimtex', { 'tag': 'v2.15' }
+endif
 
 Plug 'scrooloose/nerdcommenter'
 
