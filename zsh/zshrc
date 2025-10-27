@@ -115,11 +115,11 @@ function ssh-flo {
 #path+=('/usr/local/texlive/2018/bin/x86_64-linux')
 #manpath+=('/usr/local/texlive/2018/texmf-dist/doc/man')
 #infopath+=('/usr/local/texlive/2018/texmf-dist/doc/info')
-## If we did a user install (as done in the install script)
-#read year <<< $(ls /home/$USER/texlive | grep 20)
-#path+=("/home/$USER/texlive/$year/bin/x86_64-linux")
-#manpath+=("/home/$USER/texlive/$year/texmf-dist/doc/man")
-#infopath+=("/home/$USER/texlive/$year/texmf-dist/doc/info")
+# If we did a user install (as done in the install script)
+read year <<< $(ls /home/$USER/texlive | grep 20)
+path+=("/home/$USER/texlive/$year/bin/x86_64-linux")
+manpath+=("/home/$USER/texlive/$year/texmf-dist/doc/man")
+infopath+=("/home/$USER/texlive/$year/texmf-dist/doc/info")
 
 #### Adding NVR to path ####
 path+=('/home/mjsobrep/.local/bin')
@@ -151,15 +151,9 @@ NPM_PACKAGES="${HOME}/.npm-packages"
 
 export PATH="$NPM_PACKAGES/bin:$PATH"
 
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 #export NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/ZscalerRootCertificate-2048-SHA256.crt
 #export REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/ZscalerRootCertificate-2048-SHA256.crt
-
-## Ruby
-#export GEM_HOME="$HOME/gems"
-#export PATH="$HOME/gems/bin:$PATH"
 
 ##### Some GIT setup
 git config --global alias.tree "log --color --graph --pretty=format:'%C(#ff69b4)%h%Creset%x09%C(auto)%d%Creset %s %Cgreen(%cr)%C(bold blue) <%an> %Creset' --abbrev-commit --all --decorate"
@@ -169,37 +163,29 @@ function gitChildChanges {
 }
 
 ### NVM ###
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Set node to latest installed version and print it
+if command -v nvm &> /dev/null; then
+    if nvm use node &> /dev/null; then
+        echo "Using Node version: $(node -v)"
+    fi
+fi
 
 ### common remote targets ###
 function ssh-home {
     ssh mjsobrep@192.168.1.6 -X
 }
 
-### Ruby ###
-# RBENV:
-#export PATH="$HOME/.rbenv/bin:$PATH"
-#eval "$(rbenv init -)"
-
-### ADB for COZMO ###
-path+=()
-export PATH="$PATH:/home/mjsobrep/android-sdk-linux/platform-tools/"
-
 ### ADD CUDA Drivers ###
 CUDA_V=$(ls  /usr/local | grep "cuda-.*" | tail -1)
 PATH=/usr/local/${CUDA_V}/bin${PATH:+:${PATH}}; export PATH
 LD_LIBRARY_PATH=/usr/local/${CUDA_V}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}; export LD_LIBRARY_PATH
-
-### Little script for getting aws penn creds
-function aws-penn-login {
-    prior=$(pwd)
-    cd ~/Documents/git/aws-federated-auth
-    pipenv run python aws-federated-auth.py
-    export AWS_PROFILE=aws-rehab-robotics-flo-seas-acct-PennDataScientist
-    cd $prior
-}
 
 ### pipenv auto complete
 _pipenv() {
@@ -211,22 +197,6 @@ export PIPENV_VENV_IN_PROJECT=1
 
 ### Local zshrc ###
 #source ~/.zshrc-local
-
-### OCI ###
-# Tab Completion
-export PATH=/home/mjsobrep/bin:$PATH
-
-[[ -e "/home/mjsobrep/lib/oracle-cli/lib/python3.8/site-packages/oci_cli/bin/oci_autocomplete.sh" ]] && source "/home/mjsobrep/lib/oracle-cli/lib/python3.8/site-packages/oci_cli/bin/oci_autocomplete.sh"
-
-# OCI alias for token usage:
-export OCI_WORKING_COMPARTMENT="ocid1.compartment.oc1..aaaaaaaadznuoh3ntsva2jsj453wwmemd4t2k5rnwniuzkliq7evffxgprua"
-
-# OCI token run
-export OCI_CLI_PROFILE='token-oci-profile'
-export OCI_CLI_CONFIG_FILE="$HOME/.oci/config"
-export OCI_CLI_AUTH='security_token'
-export KUBECONFIG="$HOME/.kube/config"
-
 
 # GOLANG
 export PATH=$PATH:/usr/local/go/bin
@@ -293,6 +263,12 @@ eval spaceship_vi_mode_enable
 
 # handle keychain for ssh
 #keychain --quiet --nogui ~/.ssh/id_ed25519
-#source ~/.keychain/$(hostname)-sh
+#source ~/.keychain/$(hostname)-shadd in:
+
+
+### Ruby ###
+# RBENV:
+#export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"
 
 echo 'done loading zshrc'
