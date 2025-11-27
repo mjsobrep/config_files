@@ -111,6 +111,18 @@ install_fonts() {
   brew install --cask font-hack-nerd-font font-meslo-lg-nerd-font font-fira-code-nerd-font font-inconsolata-for-powerline
 }
 
+install_docker_completions() {
+  local dest_dir="$HOME/.zfunc"
+  mkdir -p "$dest_dir"
+  for name in docker docker-compose; do
+    local src="/Applications/Docker.app/Contents/Resources/etc/${name}.zsh-completion"
+    if [[ -f "$src" ]]; then
+      ln -sfn "$src" "$dest_dir/_${name}"
+      log "Linked $name completion from Docker.app"
+    fi
+  done
+}
+
 link_mac_configs() {
   link_file "$REPO_ROOT/mac/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
   link_file "$REPO_ROOT/mac/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
@@ -121,6 +133,7 @@ main() {
   install_brew_packages
   install_zoxide
   install_fonts
+  install_docker_completions
   install_python_packages
   install_node_stack
   install_shared_tooling

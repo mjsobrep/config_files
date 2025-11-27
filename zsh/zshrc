@@ -3,6 +3,21 @@ OS_NAME="$(uname -s)"
 export ANTIGEN_PATH="${ANTIGEN_PATH:-$HOME/.antigen.zsh}"
 [[ -f "$ANTIGEN_PATH" ]] && source "$ANTIGEN_PATH"
 
+# Explicit cache dir for oh-my-zsh (used by antigen) so completions land in a known place
+export ZSH_CACHE_DIR="${ZSH_CACHE_DIR:-$HOME/.cache/oh-my-zsh}"
+mkdir -p "$ZSH_CACHE_DIR/completions"
+
+# Ensure Docker Desktop completions are available if present
+for __docker_comp in docker docker-compose; do
+    __docker_comp_path="/Applications/Docker.app/Contents/Resources/etc/${__docker_comp}.zsh-completion"
+    if [[ -f "$__docker_comp_path" ]]; then
+        __docker_link="$ZSH_CACHE_DIR/completions/_${__docker_comp}"
+        [[ -f "$__docker_link" ]] || cp "$__docker_comp_path" "$__docker_link"
+        fpath+=("$ZSH_CACHE_DIR/completions")
+    fi
+done
+unset __docker_comp __docker_comp_path __docker_link
+
 antigen use oh-my-zsh
 
 antigen bundle git
