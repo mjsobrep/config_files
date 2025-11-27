@@ -107,7 +107,6 @@ install_zoxide() {
 
 install_fonts() {
   log "Installing fonts (nerd/powerline)"
-  brew tap homebrew/cask-fonts
   brew install --cask font-hack-nerd-font font-meslo-lg-nerd-font font-fira-code-nerd-font font-inconsolata-for-powerline
 }
 
