@@ -398,7 +398,7 @@ let R_assign = 0
 set completeopt=menu,menuone,noselect
 set pumblend=25
 
-lua <<'EOF'
+lua << EOF
 local cmp_ok, cmp = pcall(require, 'cmp')
 if not cmp_ok then
   return
@@ -444,12 +444,7 @@ cmp.setup({
 EOF
 
 """ LSP setup """
-lua <<'EOF'
-local ok, lspconfig = pcall(require, 'lspconfig')
-if not ok then
-  return
-end
-
+lua << EOF
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 local cmp_ok, cmp_lsp = pcall(require, 'cmp_nvim_lsp')
 if cmp_ok then
@@ -458,7 +453,7 @@ end
 
 local servers = {
   'pyright',
-  'tsserver',
+  'ts_ls',
   'bashls',
   'clangd',
   'dockerls',
@@ -469,16 +464,13 @@ local servers = {
 }
 
 for _, server in ipairs(servers) do
-  if lspconfig[server] then
-    lspconfig[server].setup({
-      capabilities = capabilities,
-    })
-  end
+  vim.lsp.config(server, { capabilities = capabilities })
+  vim.lsp.enable(server)
 end
 EOF
 
 """ Treesitter """
-lua <<'EOF'
+lua << EOF
 local ok, configs = pcall(require, 'nvim-treesitter.configs')
 if not ok then
   return
