@@ -139,7 +139,9 @@ let NERDTreeMinimalUI = 1
 
 """""""""" Tagbar settings """""""""""""""
 nmap <F8> :TagbarToggle<CR>
-let g:tagbar_ctags_bin='/usr/local/bin/ctags'
+if executable('ctags')
+    let g:tagbar_ctags_bin = substitute(system('command -v ctags'), '\n', '', 'g')
+endif
 
 """""""""" gutentags settings """"""""""""
 " Keep the tag files out of the projects:
@@ -255,7 +257,11 @@ autocmd FileType gitcommit set bufhidden=delete
 let g:vimtex_compiler_progname = 'nvr'
 "let g:vimtex_latexmk_callback=1 " needed for zathura_alternative
 "let g:vimtex_view_use_temp_files = 1
-let g:vimtex_view_method = 'zathura'
+if has('mac')
+    let g:vimtex_view_method = 'skim'
+else
+    let g:vimtex_view_method = 'zathura'
+endif
 let g:tex_flavor = 'latex'
 
 "let g:vimtex_compiler_latexmk = {
@@ -392,7 +398,7 @@ let g:ale_cursor_detail = 0 "shows the error in a window when hovering
 nmap <silent> <Leader>d <Plug>(pydocstring)
 "let g:pydocstring_templates_dir = '~/Documents/git/config_files/nvim/pydoc-templates'
 let g:pydocstring_formatter = 'google'
-let g:pydocstring_doq_path = '/home/mjsobrep/.local/bin/doq'
+let g:pydocstring_doq_path = expand('$HOME/.local/bin/doq')
 
 """"" Copy and past with system clipboard """"
 set clipboard=unnamedplus
@@ -431,7 +437,7 @@ nmap [h <Plug>(GitGutterPrevHunk)
 
 """" NVIM-R """"
 let R_in_buffer = 0
-let R_source = '/home/mjsobrep/.local/share/nvim/plugged/Nvim-R/R/tmux_split.vim'
+let R_source = expand('$HOME/.local/share/nvim/plugged/Nvim-R/R/tmux_split.vim')
 let R_assign = 0
 
 
