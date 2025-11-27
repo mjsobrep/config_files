@@ -34,6 +34,7 @@ install_brew_packages() {
     zsh
     tmux
     neovim
+    kitty
     ripgrep
     fd
     fzf
@@ -112,6 +113,7 @@ install_fonts() {
 
 link_mac_configs() {
   link_file "$REPO_ROOT/mac/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
+  link_file "$REPO_ROOT/mac/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
 }
 
 main() {

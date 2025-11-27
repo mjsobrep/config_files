@@ -35,9 +35,9 @@ to pip install flake8, etc. after sourcing ROS stuff.
 ## macOS setup
 There is now a mac bootstrap that shares the same dotfiles/linking helpers as the Linux scripts while skipping ROS/R/LaTeX:
 
-1. From the repo root run `./mac/install.sh` (installs Homebrew if needed, then tmux/nvim/zsh/git tooling via Brew + pip + npm).
-2. The script reuses `scripts/shared.sh` to link `zsh`, `tmux`, `nvim`, and git config, then links Karabiner config at `~/.config/karabiner/karabiner.json`.
-3. Launch Karabiner-Elements once to apply the keyboard mappings (caps+hjkl/wasd arrows, caps+space escape, caps+0/4 home/end).
+1. From the repo root run `./mac/install.sh` (installs Homebrew if needed, then tmux/nvim/zsh/git tooling via Brew + pipx + npm; installs Kitty + Nerd fonts for glyphs).
+2. The script reuses `scripts/shared.sh` to link `zsh`, `tmux`, `nvim`, and git config, links Kitty config at `~/.config/kitty/kitty.conf`, and links Karabiner config at `~/.config/karabiner/karabiner.json`.
+3. Launch Karabiner-Elements once to apply the keyboard mappings (caps+hjkl/wasd arrows, caps+space escape, caps+0/4 home/end). Set Kitty (or your terminal) to use a Nerd font for prompt/airline icons.
 
 ## Display issues
 Your display is being dynamic, but you have a desktop?
