@@ -40,6 +40,7 @@ install_brew_packages() {
     python
     pipx
     shellcheck
+    zoxide
     universal-ctags
     the_silver_searcher
     clang-format
@@ -95,6 +96,21 @@ install_node_stack() {
   fi
 }
 
+install_zoxide() {
+  if command -v zoxide >/dev/null 2>&1; then
+    log "zoxide already installed"
+    return
+  fi
+  log "zoxide not found; installing via brew"
+  brew install zoxide
+}
+
+install_fonts() {
+  log "Installing fonts (nerd/powerline)"
+  brew tap homebrew/cask-fonts
+  brew install --cask font-hack-nerd-font font-meslo-lg-nerd-font font-fira-code-nerd-font font-inconsolata-for-powerline
+}
+
 link_mac_configs() {
   link_file "$REPO_ROOT/mac/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
 }
@@ -102,6 +118,8 @@ link_mac_configs() {
 main() {
   install_homebrew
   install_brew_packages
+  install_zoxide
+  install_fonts
   install_python_packages
   install_node_stack
   install_shared_tooling
