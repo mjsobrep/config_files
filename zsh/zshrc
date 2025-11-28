@@ -201,6 +201,9 @@ export PIPENV_VENV_IN_PROJECT=1
 # GOLANG
 export PATH=$PATH:/usr/local/go/bin
 
+# RUST/CARGO
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
 # configure spaceship
 #spaceship remove  time           # Time stamps section
 #spaceship remove  user           # Username section

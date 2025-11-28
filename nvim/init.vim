@@ -79,6 +79,8 @@ Plug 'numirias/semshi', { 'do': ':UpdateRemotePlugins' }
 
 Plug 'github/copilot.vim'
 
+Plug 'rust-lang/rust.vim'
+
 call plug#end()
 
 """""""""""" General Editor Settings """"""""""""
@@ -231,6 +233,13 @@ let g:which_key_map.s = {
                 \ }
             \ }
 
+let g:which_key_map.f = {
+            \ 'name': '+ File Path',
+            \ 'p': 'Copy absolute path',
+            \ 'r': 'Copy relative path',
+            \ 'n': 'Copy filename',
+            \ }
+
 "let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 "Make AG only search contents not names (https://github.com/junegunn/fzf.vim/issues/346):
 "command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, fzf#vim#with_preview({'options': '--delimiter : --nth 4..'}), <bang>0)
@@ -339,7 +348,8 @@ let g:ale_fixers = {
             \ 'r' :['styler'],
             \ 'rmd' :['styler'],
             \ 'xml' :['xmllint'],
-            \ 'json' :['jq']
+            \ 'json' :['jq'],
+            \ 'rust' :['rustfmt']
             \}
 
 " This will make prettier always wrap text:
@@ -361,7 +371,8 @@ let g:ale_linters = {
             \ 'bash' :['shellcheck'],
             \ 'sh' :['shellcheck'],
             \ 'zsh' :['shellcheck'],
-            \ 'json' :['jq']
+            \ 'json' :['jq'],
+            \ 'rust' :['cargo', 'clippy', 'rustc']
             \}
 
 let g:ale_linter_aliases = {
@@ -402,6 +413,14 @@ let g:pydocstring_doq_path = '/home/mjsobrep/.local/bin/doq'
 
 """"" Copy and past with system clipboard """"
 set clipboard=unnamedplus
+
+""""" Copy file paths """""
+" Copy absolute path to clipboard
+nnoremap <Leader>fp :let @+ = expand('%:p')<CR>:echo 'Copied: ' . expand('%:p')<CR>
+" Copy relative path to clipboard
+nnoremap <Leader>fr :let @+ = expand('%')<CR>:echo 'Copied: ' . expand('%')<CR>
+" Copy just filename to clipboard
+nnoremap <Leader>fn :let @+ = expand('%:t')<CR>:echo 'Copied: ' . expand('%:t')<CR>
 
 """" Reload files from disk on change """"
 set autoread
