@@ -48,8 +48,10 @@ build_image() {
         exit 1
     fi
 
+    # Resolve symlink to get actual path (Docker doesn't follow symlinks well)
+    DOCKERFILE="$(readlink -f "$DOCKERFILE")"
     echo -e "Using dockerfile at: ${DOCKERFILE}"
-    
+
     docker build -t "$IMAGE_NAME" -f "$DOCKERFILE" "$(dirname "$DOCKERFILE")"
     echo -e "${GREEN}Image built successfully${NC}"
 }
