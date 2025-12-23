@@ -47,6 +47,8 @@ build_image() {
         echo "  ~/.claude-sandbox/Dockerfile"
         exit 1
     fi
+
+    echo -e "Using dockerfile at: ${DOCKERFILE}"
     
     docker build -t "$IMAGE_NAME" -f "$DOCKERFILE" "$(dirname "$DOCKERFILE")"
     echo -e "${GREEN}Image built successfully${NC}"
