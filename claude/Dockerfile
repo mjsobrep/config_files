@@ -49,7 +49,8 @@ RUN apt-get update && apt-get install -y \
 # Install Claude Code (installs to /root/.local/bin as root)
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
-ENV PATH="/root/.local/bin:$PATH"
+# Claude is installed at /root/.local/bin; also add $HOME/.local/bin to silence doctor warnings
+ENV PATH="/home/sandbox/.local/bin:/root/.local/bin:$PATH"
 
 # Create a home directory that will be used at runtime
 # The actual UID will be set via --user at runtime, but we need the directory to exist
