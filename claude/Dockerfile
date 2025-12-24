@@ -46,6 +46,11 @@ RUN apt-get update && apt-get install -y \
     && ln -sf /usr/bin/python3 /usr/bin/python \
     && pip3 install --break-system-packages pipenv
 
+# Install MCAP CLI (robotics recording format tools)
+# Note: Only amd64 binary available; on ARM this step will fail and can be removed
+RUN curl -fsSL "https://github.com/foxglove/mcap/releases/download/releases%2Fmcap-cli%2Fv0.0.59/mcap-linux-amd64" -o /usr/local/bin/mcap \
+    && chmod +x /usr/local/bin/mcap
+
 # Install Claude Code (installs to /root/.local/bin as root)
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
