@@ -26,6 +26,12 @@ echo -e "${GREEN}✓${NC} Linked claude-sandbox -> $BIN_DIR/claude-sandbox"
 ln -sf "$SCRIPT_DIR/Dockerfile" "$CONFIG_DIR/Dockerfile"
 echo -e "${GREEN}✓${NC} Linked Dockerfile -> $CONFIG_DIR/Dockerfile"
 
+# Symlink settings into the auth directory (where Claude looks for config)
+AUTH_DIR="$HOME/.claude-sandbox-auth"
+mkdir -p "$AUTH_DIR"
+ln -sf "$SCRIPT_DIR/.claude/settings.local.json" "$AUTH_DIR/settings.local.json"
+echo -e "${GREEN}✓${NC} Linked settings.local.json -> $AUTH_DIR/settings.local.json"
+
 # Check if ~/.local/bin is in PATH
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
     echo ""

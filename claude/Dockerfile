@@ -76,7 +76,11 @@ RUN git config --system init.defaultBranch main \
 # Move original to /usr/libexec (never in PATH) to avoid git-* subcommand discovery
 RUN mkdir -p /usr/libexec/sandbox \
     && mv /usr/bin/git /usr/libexec/sandbox/git \
-    && printf '#!/bin/bash\ncase "$1" in\n  commit|push|stash|reset|clean|rebase) echo "git $1 is disabled in sandbox - review and manage on host"; exit 1;;\n  *) exec /usr/libexec/sandbox/git "$@";;\nesac\n' > /usr/bin/git \
+    && printf '#!/bin/bash\ncase "$1" in\n  commit) echo "git commit is disabled in sandbox - use: git-draft-commit \"your message\""; exit 1;;\n  push|stash|reset|clean|rebase) echo "git $1 is disabled in sandbox - review and manage on host"; exit 1;;\n  *) exec /usr/libexec/sandbox/git "$@";;\nesac\n' > /usr/bin/git \
     && chmod +x /usr/bin/git
+
+# Draft commit helper - stages are preserved, message written to file for host review
+RUN printf '#!/bin/bash\necho "$*" > /workspace/.commit-msg\necho "Commit message saved to .commit-msg"\necho "On host run: git commit -F .commit-msg"\n' > /usr/local/bin/git-draft-commit \
+    && chmod +x /usr/local/bin/git-draft-commit
 
 CMD ["claude"]
