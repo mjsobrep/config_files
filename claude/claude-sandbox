@@ -22,14 +22,18 @@ usage() {
     echo "Run Claude Code in a sandboxed Docker container"
     echo ""
     echo "Options:"
-    echo "  -b, --build     Force rebuild the Docker image"
-    echo "  -s, --shell     Start a bash shell instead of Claude"
-    echo "  -h, --help      Show this help message"
+    echo "  -b, --build       Force rebuild the Docker image"
+    echo "  -s, --shell       Start a bash shell instead of Claude"
+    echo "  -n, --no-commit   Block git commits (default: commits allowed, push blocked)"
+    echo "  -p, --port PORT   Expose a port (can be used multiple times)"
+    echo "  -h, --help        Show this help message"
     echo ""
     echo "Examples:"
     echo "  claude-sandbox                    # Start Claude in current directory"
     echo "  claude-sandbox --shell            # Get a shell in the sandbox"
     echo "  claude-sandbox -b                 # Rebuild image and start Claude"
+    echo "  claude-sandbox -n                 # Block commits, require host review"
+    echo "  claude-sandbox -p 3000 -p 8080    # Expose ports 3000 and 8080"
     echo "  claude-sandbox \"fix the tests\"    # Start Claude with initial prompt"
 }
 
@@ -54,7 +58,9 @@ build_image() {
     DOCKERFILE="$(readlink -f "$DOCKERFILE")"
     echo -e "Using dockerfile at: ${DOCKERFILE}"
 
-    docker build -t "$IMAGE_NAME" -f "$DOCKERFILE" "$(dirname "$DOCKERFILE")"
+    # Use timestamp as cache-buster to force fresh Claude Code install
+    docker build --build-arg CLAUDE_CACHEBUST="$(date +%s)" \
+        -t "$IMAGE_NAME" -f "$DOCKERFILE" "$(dirname "$DOCKERFILE")"
     echo -e "${GREEN}Image built successfully${NC}"
 }
 
@@ -75,6 +81,8 @@ ensure_auth_dir() {
 # Parse arguments
 FORCE_BUILD=false
 START_SHELL=false
+NO_COMMIT=false
+EXPOSED_PORTS=()
 CLAUDE_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -86,6 +94,18 @@ while [[ $# -gt 0 ]]; do
         -s|--shell)
             START_SHELL=true
             shift
+            ;;
+        -n|--no-commit)
+            NO_COMMIT=true
+            shift
+            ;;
+        -p|--port)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo -e "${RED}Error: --port requires a port number${NC}"
+                exit 1
+            fi
+            EXPOSED_PORTS+=("$2")
+            shift 2
             ;;
         -h|--help)
             usage
@@ -116,7 +136,33 @@ fi
 
 echo -e "${GREEN}Starting sandbox in: $(pwd)${NC}"
 echo -e "${YELLOW}Mounted as /workspace (read-write)${NC}"
+if [[ "$NO_COMMIT" == "true" ]]; then
+    echo -e "${YELLOW}Git commits disabled (use git-draft-commit)${NC}"
+else
+    echo -e "${YELLOW}Git commits allowed, push blocked${NC}"
+fi
+
+# Port exposure info
+if [[ ${#EXPOSED_PORTS[@]} -gt 0 ]]; then
+    echo -e "${GREEN}Exposed ports: ${EXPOSED_PORTS[*]}${NC}"
+    echo -e "  Access via: http://localhost:<port>"
+else
+    echo -e "${YELLOW}No ports exposed (use -p/--port to expose web servers)${NC}"
+    echo -e "  Example: claude-sandbox -p 3000 -p 8080"
+fi
 echo ""
+
+# Build env var args
+ENV_ARGS=(-e CLAUDE_CONFIG_DIR=/home/sandbox/.claude)
+if [[ "$NO_COMMIT" == "true" ]]; then
+    ENV_ARGS+=(-e SANDBOX_NO_COMMIT=1)
+fi
+
+# Build port mapping args
+PORT_ARGS=()
+for port in "${EXPOSED_PORTS[@]}"; do
+    PORT_ARGS+=(-p "$port:$port")
+done
 
 # Run the container
 # --user: Run as current user so files created in /workspace have correct ownership on host
@@ -127,7 +173,8 @@ exec docker run -it --rm \
     --name "$CONTAINER_NAME" \
     --hostname claude-sandbox \
     --user "$(id -u):$(id -g)" \
-    -e CLAUDE_CONFIG_DIR=/home/sandbox/.claude \
+    "${ENV_ARGS[@]}" \
+    "${PORT_ARGS[@]}" \
     -v "$(pwd):/workspace" \
     -v "${AUTH_DIR}:/home/sandbox/.claude" \
     -w /workspace \

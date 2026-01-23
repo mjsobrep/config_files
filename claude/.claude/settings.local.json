@@ -8,10 +8,17 @@
       "Glob",
       "Grep",
       "WebSearch",
-      "WebFetch"
+      "WebFetch",
+      "Task",
+      "TodoRead",
+      "TodoWrite",
+      "NotebookEdit"
     ],
     "deny": [],
-    "ask": [],
     "defaultMode": "bypassPermissions"
+  },
+  "attribution": {
+    "commit": "\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+    "pr": "\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)"
   }
 }

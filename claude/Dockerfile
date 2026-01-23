@@ -52,6 +52,8 @@ RUN curl -fsSL "https://github.com/foxglove/mcap/releases/download/releases%2Fmc
     && chmod +x /usr/local/bin/mcap
 
 # Install Claude Code (installs to /root/.local/bin as root)
+# Pass --build-arg CLAUDE_CACHEBUST=$(date +%s) to force reinstall
+ARG CLAUDE_CACHEBUST=1
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # Claude is installed at /root/.local/bin; also add $HOME/.local/bin to silence doctor warnings
@@ -60,6 +62,33 @@ ENV PATH="/home/sandbox/.local/bin:/root/.local/bin:$PATH"
 # Create a home directory that will be used at runtime
 # The actual UID will be set via --user at runtime, but we need the directory to exist
 RUN mkdir -p /home/sandbox && chmod 777 /home/sandbox
+
+# Bake in Claude Code settings with bypass permissions
+# This ensures sandbox always has correct permissions regardless of project settings
+RUN mkdir -p /home/sandbox/.claude && chmod 777 /home/sandbox/.claude
+COPY <<'SETTINGS' /home/sandbox/.claude/settings.local.json
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch",
+      "Task",
+      "TodoRead",
+      "TodoWrite",
+      "NotebookEdit"
+    ],
+    "deny": [],
+    "defaultMode": "bypassPermissions"
+  }
+}
+SETTINGS
+RUN chmod 666 /home/sandbox/.claude/settings.local.json
 
 # Stable machine-id so Claude auth persists across container runs
 RUN echo "claude-sandbox-stable-machine-id" > /etc/machine-id
@@ -74,12 +103,31 @@ RUN git config --system init.defaultBranch main \
 
 # Block dangerous git commands - user should review all changes on host
 # Move original to /usr/libexec (never in PATH) to avoid git-* subcommand discovery
+# SANDBOX_NO_COMMIT env var controls whether commits are blocked (set at runtime)
 RUN mkdir -p /usr/libexec/sandbox \
     && mv /usr/bin/git /usr/libexec/sandbox/git \
-    && printf '#!/bin/bash\ncase "$1" in\n  commit) echo "git commit is disabled in sandbox - use: git-draft-commit \"your message\""; exit 1;;\n  push|stash|reset|clean|rebase) echo "git $1 is disabled in sandbox - review and manage on host"; exit 1;;\n  *) exec /usr/libexec/sandbox/git "$@";;\nesac\n' > /usr/bin/git \
-    && chmod +x /usr/bin/git
+    && cat > /usr/bin/git <<'GITSCRIPT'
+#!/bin/bash
+case "$1" in
+  commit)
+    if [[ -n "$SANDBOX_NO_COMMIT" ]]; then
+      echo "git commit is disabled in sandbox - use: git-draft-commit \"your message\""
+      exit 1
+    fi
+    exec /usr/libexec/sandbox/git "$@"
+    ;;
+  push|stash|reset|clean|rebase)
+    echo "git $1 is disabled in sandbox - review and manage on host"
+    exit 1
+    ;;
+  *)
+    exec /usr/libexec/sandbox/git "$@"
+    ;;
+esac
+GITSCRIPT
+RUN chmod +x /usr/bin/git
 
-# Draft commit helper - stages are preserved, message written to file for host review
+# Draft commit helper - for use when commits are disabled
 RUN printf '#!/bin/bash\necho "$*" > /workspace/.commit-msg\necho "Commit message saved to .commit-msg"\necho "On host run: git commit -F .commit-msg"\n' > /usr/local/bin/git-draft-commit \
     && chmod +x /usr/local/bin/git-draft-commit
 
