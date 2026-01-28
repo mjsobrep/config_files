@@ -26,12 +26,8 @@ echo -e "${GREEN}✓${NC} Linked claude-sandbox -> $BIN_DIR/claude-sandbox"
 ln -sf "$SCRIPT_DIR/Dockerfile" "$CONFIG_DIR/Dockerfile"
 echo -e "${GREEN}✓${NC} Linked Dockerfile -> $CONFIG_DIR/Dockerfile"
 
-# Copy settings into the auth directory (where Claude looks for config)
-# We copy instead of symlink because Docker mounts can't follow host symlinks
-AUTH_DIR="$HOME/.claude-sandbox-auth"
-mkdir -p "$AUTH_DIR"
-cp "$SCRIPT_DIR/.claude/settings.local.json" "$AUTH_DIR/settings.local.json"
-echo -e "${GREEN}✓${NC} Copied settings.local.json -> $AUTH_DIR/settings.local.json"
+# Auth directory is created and populated by claude-sandbox script at runtime
+# This ensures settings.json is always correct even if Claude Code modifies it
 
 # Check if ~/.local/bin is in PATH
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then

@@ -76,6 +76,37 @@ ensure_auth_dir() {
         echo -e "${YELLOW}Creating auth directory...${NC}"
         mkdir -p "$AUTH_DIR"
     fi
+
+    # Ensure settings.json has bypassPermissions mode
+    # Claude Code may create/modify this file when you approve commands,
+    # so we need to update it in place rather than overwrite it
+    local settings_file="$AUTH_DIR/settings.json"
+    if [[ ! -f "$settings_file" ]]; then
+        echo -e "${YELLOW}Creating settings with bypass permissions...${NC}"
+        cat > "$settings_file" <<'SETTINGS'
+{
+  "permissions": {
+    "allow": [],
+    "deny": [],
+    "defaultMode": "bypassPermissions"
+  }
+}
+SETTINGS
+    elif ! grep -q '"defaultMode"[[:space:]]*:[[:space:]]*"bypassPermissions"' "$settings_file"; then
+        echo -e "${YELLOW}Updating settings to bypass permissions mode...${NC}"
+        # Use python to safely update JSON (preserves existing allow list)
+        python3 -c "
+import json, sys
+settings_file = sys.argv[1]
+with open(settings_file, 'r') as f:
+    settings = json.load(f)
+if 'permissions' not in settings:
+    settings['permissions'] = {}
+settings['permissions']['defaultMode'] = 'bypassPermissions'
+with open(settings_file, 'w') as f:
+    json.dump(settings, f, indent=2)
+" "$settings_file"
+    fi
 }
 
 # Parse arguments
