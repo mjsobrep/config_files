@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     git \
+    git-lfs \
     build-essential \
     pkg-config \
     libssl-dev \
@@ -65,30 +66,19 @@ RUN mkdir -p /home/sandbox && chmod 777 /home/sandbox
 
 # Bake in Claude Code settings with bypass permissions
 # This ensures sandbox always has correct permissions regardless of project settings
+# Note: The volume mount at runtime hides these, so claude-sandbox script also ensures
+# settings.json exists in the mounted auth directory
 RUN mkdir -p /home/sandbox/.claude && chmod 777 /home/sandbox/.claude
-COPY <<'SETTINGS' /home/sandbox/.claude/settings.local.json
+COPY <<'SETTINGS' /home/sandbox/.claude/settings.json
 {
   "permissions": {
-    "allow": [
-      "Bash",
-      "Read",
-      "Write",
-      "Edit",
-      "Glob",
-      "Grep",
-      "WebSearch",
-      "WebFetch",
-      "Task",
-      "TodoRead",
-      "TodoWrite",
-      "NotebookEdit"
-    ],
+    "allow": [],
     "deny": [],
     "defaultMode": "bypassPermissions"
   }
 }
 SETTINGS
-RUN chmod 666 /home/sandbox/.claude/settings.local.json
+RUN chmod 666 /home/sandbox/.claude/settings.json
 
 # Stable machine-id so Claude auth persists across container runs
 RUN echo "claude-sandbox-stable-machine-id" > /etc/machine-id

@@ -171,6 +171,14 @@ if [[ "$NO_COMMIT" == "true" ]]; then
     echo -e "${YELLOW}Git commits disabled (use git-draft-commit)${NC}"
 else
     echo -e "${YELLOW}Git commits allowed, push blocked${NC}"
+    # Show git identity status
+    GIT_NAME_CHECK=$(git config user.name 2>/dev/null || true)
+    GIT_EMAIL_CHECK=$(git config user.email 2>/dev/null || true)
+    if [[ -n "$GIT_NAME_CHECK" && -n "$GIT_EMAIL_CHECK" ]]; then
+        echo -e "${GREEN}Git identity: $GIT_NAME_CHECK <$GIT_EMAIL_CHECK>${NC}"
+    else
+        echo -e "${RED}Warning: Git identity not configured on host (git config user.name/user.email)${NC}"
+    fi
 fi
 
 # Port exposure info
@@ -187,6 +195,16 @@ echo ""
 ENV_ARGS=(-e CLAUDE_CONFIG_DIR=/home/sandbox/.claude)
 if [[ "$NO_COMMIT" == "true" ]]; then
     ENV_ARGS+=(-e SANDBOX_NO_COMMIT=1)
+else
+    # Pass through git identity from host when commits are allowed
+    GIT_NAME=$(git config user.name 2>/dev/null || true)
+    GIT_EMAIL=$(git config user.email 2>/dev/null || true)
+    if [[ -n "$GIT_NAME" ]]; then
+        ENV_ARGS+=(-e "GIT_AUTHOR_NAME=$GIT_NAME" -e "GIT_COMMITTER_NAME=$GIT_NAME")
+    fi
+    if [[ -n "$GIT_EMAIL" ]]; then
+        ENV_ARGS+=(-e "GIT_AUTHOR_EMAIL=$GIT_EMAIL" -e "GIT_COMMITTER_EMAIL=$GIT_EMAIL")
+    fi
 fi
 
 # Build port mapping args
