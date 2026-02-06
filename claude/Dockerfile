@@ -57,6 +57,19 @@ RUN curl -fsSL "https://github.com/foxglove/mcap/releases/download/releases%2Fmc
 ARG CLAUDE_CACHEBUST=1
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
+# AI tool CLIs for MCP integration (Codex, Gemini)
+# Credentials are mounted read-only from host at runtime
+RUN npm install -g @openai/codex @google/gemini-cli
+
+# MCP servers that wrap the CLIs (uses CLI's existing auth)
+RUN npm install -g codex-mcp-server gemini-mcp
+
+# Playwright MCP for browser automation (allows Claude to control a browser)
+# Let Playwright download its own Chromium binary with --with-deps to install system libs
+# Note: Ubuntu 24.04's chromium-browser is just a Snap wrapper that doesn't work in Docker
+RUN npm install -g @playwright/mcp@latest \
+    && npx playwright install --with-deps chromium
+
 # Claude is installed at /root/.local/bin; also add $HOME/.local/bin to silence doctor warnings
 ENV PATH="/home/sandbox/.local/bin:/root/.local/bin:$PATH"
 

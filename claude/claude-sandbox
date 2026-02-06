@@ -107,6 +107,33 @@ with open(settings_file, 'w') as f:
     json.dump(settings, f, indent=2)
 " "$settings_file"
     fi
+
+    # Ensure MCP config exists for AI tool integration (Codex, Gemini, Playwright)
+    local mcp_file="$AUTH_DIR/mcp.json"
+    if [[ ! -f "$mcp_file" ]]; then
+        echo -e "${YELLOW}Creating MCP config for AI tools...${NC}"
+        cat > "$mcp_file" <<'MCPCONFIG'
+{
+  "mcpServers": {
+    "codex": {
+      "command": "codex-mcp-server",
+      "args": [],
+      "env": {}
+    },
+    "gemini": {
+      "command": "gemini-mcp",
+      "args": [],
+      "env": {}
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--browser", "chromium", "--headless", "--no-sandbox", "--isolated"],
+      "env": {}
+    }
+  }
+}
+MCPCONFIG
+    fi
 }
 
 # Parse arguments
@@ -213,17 +240,32 @@ for port in "${EXPOSED_PORTS[@]}"; do
     PORT_ARGS+=(-p "$port:$port")
 done
 
+# Build AI tool credential volume mounts (read-only)
+# These allow Codex and Gemini MCP servers in the sandbox to use host credentials
+AI_CRED_ARGS=()
+if [[ -d "$HOME/.codex" ]]; then
+    AI_CRED_ARGS+=(-v "$HOME/.codex:/home/sandbox/.codex:ro")
+    echo -e "${GREEN}Codex credentials: mounted from ~/.codex${NC}"
+fi
+if [[ -d "$HOME/.gemini" ]]; then
+    AI_CRED_ARGS+=(-v "$HOME/.gemini:/home/sandbox/.gemini:ro")
+    echo -e "${GREEN}Gemini credentials: mounted from ~/.gemini${NC}"
+fi
+
 # Run the container
 # --user: Run as current user so files created in /workspace have correct ownership on host
 # HOME=/home/sandbox: Matches the directory created in Dockerfile (chmod 777 so any UID can write)
 # CLAUDE_CONFIG_DIR: Tells Claude where to find/store auth and config
 # Auth directory mounted for credential persistence across runs
+# AI tool credentials mounted read-only for MCP server access
 exec docker run -it --rm \
     --name "$CONTAINER_NAME" \
     --hostname claude-sandbox \
     --user "$(id -u):$(id -g)" \
+    --add-host=host.docker.internal:host-gateway \
     "${ENV_ARGS[@]}" \
     "${PORT_ARGS[@]}" \
+    "${AI_CRED_ARGS[@]}" \
     -v "$(pwd):/workspace" \
     -v "${AUTH_DIR}:/home/sandbox/.claude" \
     -w /workspace \
