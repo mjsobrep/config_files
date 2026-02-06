@@ -39,7 +39,7 @@ usage() {
 
 build_image() {
     echo -e "${YELLOW}Building Docker image...${NC}"
-    
+
     # Check for Dockerfile in known locations
     DOCKERFILE=""
     if [[ -f "$HOME/.config/claude-sandbox/Dockerfile" ]]; then
@@ -58,10 +58,26 @@ build_image() {
     DOCKERFILE="$(readlink -f "$DOCKERFILE")"
     echo -e "Using dockerfile at: ${DOCKERFILE}"
 
+    # Build with logging - output goes to both terminal and log file
+    local log_file="$AUTH_DIR/build.log"
+    mkdir -p "$AUTH_DIR"
+    echo "Build started at $(date)" > "$log_file"
+    echo "Dockerfile: $DOCKERFILE" >> "$log_file"
+    echo "---" >> "$log_file"
+
     # Use timestamp as cache-buster to force fresh Claude Code install
-    docker build --build-arg CLAUDE_CACHEBUST="$(date +%s)" \
-        -t "$IMAGE_NAME" -f "$DOCKERFILE" "$(dirname "$DOCKERFILE")"
-    echo -e "${GREEN}Image built successfully${NC}"
+    if docker build --build-arg CLAUDE_CACHEBUST="$(date +%s)" \
+        -t "$IMAGE_NAME" -f "$DOCKERFILE" "$(dirname "$DOCKERFILE")" 2>&1 | tee -a "$log_file"; then
+        echo -e "${GREEN}Image built successfully${NC}"
+        echo "---" >> "$log_file"
+        echo "Build completed successfully at $(date)" >> "$log_file"
+    else
+        echo -e "${RED}Build failed!${NC}"
+        echo -e "Log saved to: ${YELLOW}$log_file${NC}"
+        echo "---" >> "$log_file"
+        echo "Build FAILED at $(date)" >> "$log_file"
+        exit 1
+    fi
 }
 
 ensure_image() {
