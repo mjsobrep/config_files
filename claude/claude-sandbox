@@ -108,31 +108,62 @@ with open(settings_file, 'w') as f:
 " "$settings_file"
     fi
 
-    # Ensure MCP config exists for AI tool integration (Codex, Gemini, Playwright)
+    # Ensure MCP config has required servers (Codex, Gemini, Playwright)
+    # Merges into existing config, preserving user-added servers
     local mcp_file="$AUTH_DIR/mcp.json"
-    if [[ ! -f "$mcp_file" ]]; then
-        echo -e "${YELLOW}Creating MCP config for AI tools...${NC}"
-        cat > "$mcp_file" <<'MCPCONFIG'
-{
-  "mcpServers": {
-    "codex": {
-      "command": "codex-mcp-server",
-      "args": [],
-      "env": {}
+    local added
+    added=$(python3 << 'PYTHON' "$mcp_file"
+import json
+import sys
+
+mcp_file = sys.argv[1]
+
+# Required MCP servers for sandbox
+required_servers = {
+    'codex': {
+        'command': 'codex-mcp-server',
+        'args': [],
+        'env': {}
     },
-    "gemini": {
-      "command": "gemini-mcp",
-      "args": [],
-      "env": {}
+    'gemini': {
+        'command': 'gemini-mcp',
+        'args': [],
+        'env': {}
     },
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest", "--browser", "chromium", "--headless", "--no-sandbox", "--isolated"],
-      "env": {}
+    'playwright': {
+        'command': 'npx',
+        'args': ['@playwright/mcp@latest', '--browser', 'chromium', '--headless', '--no-sandbox', '--isolated'],
+        'env': {}
     }
-  }
 }
-MCPCONFIG
+
+# Load existing config or create new
+try:
+    with open(mcp_file, 'r') as f:
+        config = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    config = {}
+
+if 'mcpServers' not in config:
+    config['mcpServers'] = {}
+
+# Add missing servers
+added = []
+for name, server in required_servers.items():
+    if name not in config['mcpServers']:
+        config['mcpServers'][name] = server
+        added.append(name)
+
+# Write back if changes were made
+if added:
+    with open(mcp_file, 'w') as f:
+        json.dump(config, f, indent=2)
+    print(', '.join(added))
+PYTHON
+)
+
+    if [[ -n "$added" ]]; then
+        echo -e "${YELLOW}Added MCP servers: ${added}${NC}"
     fi
 }
 
