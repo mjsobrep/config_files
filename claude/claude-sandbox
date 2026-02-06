@@ -282,7 +282,10 @@ fi
 echo ""
 
 # Build env var args
-ENV_ARGS=(-e CLAUDE_CONFIG_DIR=/home/sandbox/.claude)
+ENV_ARGS=(
+    -e CLAUDE_CONFIG_DIR=/home/sandbox/.claude
+    -e CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1  # Enable multi-agent teams
+)
 if [[ "$NO_COMMIT" == "true" ]]; then
     ENV_ARGS+=(-e SANDBOX_NO_COMMIT=1)
 else

@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     vim \
     less \
+    tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 20.x (LTS)
