@@ -71,6 +71,23 @@ RUN npm install -g codex-mcp-server gemini-mcp
 RUN npm install -g @playwright/mcp@latest \
     && npx playwright install --with-deps chromium
 
+# External service MCP servers (read-only access to dev tools & communication)
+# Token-based: Slack, Notion, GitHub, Linear (credentials passed as env vars at runtime)
+# OAuth-based: Google Calendar, Gmail, Drive (credentials mounted from host at runtime)
+RUN npm install -g \
+    slack-mcp-server \
+    @notionhq/notion-mcp-server \
+    @tacticlaunch/mcp-linear \
+    @cocal/google-calendar-mcp \
+    @shinzolabs/gmail-mcp \
+    @modelcontextprotocol/server-gdrive
+
+# GitHub MCP server (official Go binary from GitHub's Docker image)
+COPY --from=ghcr.io/github/github-mcp-server:latest /github-mcp-server /usr/local/bin/github-mcp-server
+
+# Google OAuth credentials directory (mounted at runtime if available)
+RUN mkdir -p /home/sandbox/.google-mcp && chmod 777 /home/sandbox/.google-mcp
+
 # Claude is installed at /root/.local/bin; also add $HOME/.local/bin to silence doctor warnings
 ENV PATH="/home/sandbox/.local/bin:/root/.local/bin:$PATH"
 

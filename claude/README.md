@@ -21,7 +21,8 @@ claude-sandbox/
 ├── README.md         # You are here
 ├── install.sh        # Symlinks files into place
 ├── claude-sandbox    # Launcher script
-└── Dockerfile        # Container definition
+├── Dockerfile        # Container definition
+└── CLAUDE.md         # Default instructions for Claude in sandbox
 ```
 
 ## Install
@@ -72,6 +73,70 @@ On first launch, Claude will prompt you to authenticate in your browser. Credent
 | pipenv | Latest |
 | Git | Latest |
 | ripgrep, fd, jq | Latest |
+| OpenAI Codex CLI | Latest |
+| Google Gemini CLI | Latest |
+## MCP Services
+
+Claude in the sandbox connects to external services via [MCP (Model Context Protocol)](https://modelcontextprotocol.io/). All external services are configured for **read-only** access.
+
+### AI Tools
+
+| Service | MCP Server | Auth |
+|---------|-----------|------|
+| OpenAI Codex | `codex-mcp-server` | `codex login` on host |
+| Google Gemini | `gemini-mcp` | `gemini auth login` on host |
+| Playwright | `@playwright/mcp` | None (built-in) |
+
+Credentials (`~/.codex/`, `~/.gemini/`) are mounted read-only into the sandbox.
+
+### Token-Based Services (Read-Only)
+
+Set these environment variables on your host. The sandbox passes them through automatically.
+
+| Service | MCP Server | Env Var | Setup |
+|---------|-----------|---------|-------|
+| Slack | `slack-mcp-server` | `SLACK_MCP_XOXP_TOKEN` | Create a Slack app with read scopes, get user token |
+| Notion | `@notionhq/notion-mcp-server` | `NOTION_TOKEN` | Create integration at [notion.so/my-integrations](https://www.notion.so/my-integrations) with "Read content" only |
+| GitHub | `github-mcp-server` | `GITHUB_PERSONAL_ACCESS_TOKEN` | Create PAT at [github.com/settings/tokens](https://github.com/settings/tokens). `GITHUB_READ_ONLY` is enforced. |
+| Linear | `@tacticlaunch/mcp-linear` | `LINEAR_API_KEY` | Create read-only API key in Linear settings |
+
+Add to your shell profile (`~/.zshrc`):
+
+```bash
+export SLACK_MCP_XOXP_TOKEN="xoxp-..."
+export NOTION_TOKEN="ntn_..."
+export GITHUB_PERSONAL_ACCESS_TOKEN="ghp_..."
+export LINEAR_API_KEY="lin_api_..."
+```
+
+### Google Services (Read-Only, OAuth)
+
+Google Calendar, Gmail, and Google Drive use OAuth credentials mounted from `~/.google-mcp/`.
+
+**One-time setup:**
+
+1. Create a [Google Cloud project](https://console.cloud.google.com) and enable Calendar, Gmail, and Drive APIs
+2. Create OAuth 2.0 credentials (Desktop app type) and download the JSON
+3. Save to `~/.google-mcp/oauth-credentials.json`
+4. Run the auth flow for each service on your host:
+   ```bash
+   # Calendar
+   GOOGLE_OAUTH_CREDENTIALS=~/.google-mcp/oauth-credentials.json \
+     npx @cocal/google-calendar-mcp
+
+   # Gmail
+   npx @shinzolabs/gmail-mcp auth
+
+   # Drive
+   npx @modelcontextprotocol/server-gdrive
+   ```
+5. Complete the browser OAuth flow for each. Tokens are stored in `~/.google-mcp/`
+
+| Service | MCP Server | Access |
+|---------|-----------|--------|
+| Google Calendar | `@cocal/google-calendar-mcp` | Read-only (write tools disabled) |
+| Gmail | `@shinzolabs/gmail-mcp` | Read-only via OAuth scopes |
+| Google Drive | `@modelcontextprotocol/server-gdrive` | Read-only (inherent) |
 
 ## Customizing
 
@@ -133,7 +198,10 @@ This setup relies on Docker's container isolation. On macOS, Docker Desktop runs
 
 **Mounted (accessible to AI):**
 - Current working directory only
-- Claude auth (separate volume)
+- Claude auth (separate directory)
+- AI tool credentials read-only: `~/.codex/`, `~/.gemini/`
+- Google OAuth credentials read-only: `~/.google-mcp/`
+- MCP service tokens via env vars (Slack, Notion, GitHub, Linear)
 
 For stronger isolation (e.g., if your project needs Docker-in-Docker), consider running inside a Lima VM.
 

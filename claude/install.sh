@@ -28,11 +28,15 @@ echo -e "${GREEN}✓${NC} Linked claude-sandbox -> $BIN_DIR/claude-sandbox"
 ln -sf "$SCRIPT_DIR/Dockerfile" "$CONFIG_DIR/Dockerfile"
 echo -e "${GREEN}✓${NC} Linked Dockerfile -> $CONFIG_DIR/Dockerfile"
 
+# Symlink CLAUDE.md (user-level sandbox instructions)
+ln -sf "$SCRIPT_DIR/CLAUDE.md" "$CONFIG_DIR/CLAUDE.md"
+echo -e "${GREEN}✓${NC} Linked CLAUDE.md -> $CONFIG_DIR/CLAUDE.md"
+
 # Install/update MCP config for AI tool integration (host usage, outside sandbox)
 # This enables Claude on your Mac to use Codex, Gemini via MCP
 # Merges into existing config, preserving user-added servers
 MCP_FILE="$CLAUDE_DIR/mcp.json"
-added=$(python3 << 'PYTHON' "$MCP_FILE"
+added=$(python3 - "$MCP_FILE" << 'PYTHON'
 import json
 import sys
 
