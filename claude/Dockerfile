@@ -71,22 +71,12 @@ RUN npm install -g codex-mcp-server gemini-mcp
 RUN npm install -g @playwright/mcp@latest \
     && npx playwright install --with-deps chromium
 
-# External service MCP servers (read-only access to dev tools & communication)
-# Token-based: Slack, Notion, GitHub, Linear (credentials passed as env vars at runtime)
-# OAuth-based: Google Calendar, Gmail, Drive (credentials mounted from host at runtime)
-RUN npm install -g \
-    slack-mcp-server \
-    @notionhq/notion-mcp-server \
-    @tacticlaunch/mcp-linear \
-    @cocal/google-calendar-mcp \
-    @shinzolabs/gmail-mcp \
-    @modelcontextprotocol/server-gdrive
+# Google Drive MCP server (official Anthropic/MCP reference server)
+RUN npm install -g @modelcontextprotocol/server-gdrive
 
-# GitHub MCP server (official Go binary from GitHub's Docker image)
-COPY --from=ghcr.io/github/github-mcp-server:latest /github-mcp-server /usr/local/bin/github-mcp-server
-
-# Google OAuth credentials directory (mounted at runtime if available)
-RUN mkdir -p /home/sandbox/.google-mcp && chmod 777 /home/sandbox/.google-mcp
+# Language server binaries for LSP plugins (real-time type checking on every edit)
+RUN npm install -g typescript-language-server typescript pyright
+RUN rustup component add rust-analyzer
 
 # Claude is installed at /root/.local/bin; also add $HOME/.local/bin to silence doctor warnings
 ENV PATH="/home/sandbox/.local/bin:/root/.local/bin:$PATH"
@@ -152,4 +142,42 @@ RUN chmod +x /usr/bin/git
 RUN printf '#!/bin/bash\necho "$*" > /workspace/.commit-msg\necho "Commit message saved to .commit-msg"\necho "On host run: git commit -F .commit-msg"\n' > /usr/local/bin/git-draft-commit \
     && chmod +x /usr/local/bin/git-draft-commit
 
+# Plugin entrypoint: installs official plugins on first run
+# Plugins persist in ~/.claude/plugins/ (mounted from auth dir)
+# Bump PLUGIN_SETUP_VERSION to trigger re-install after adding new plugins
+COPY <<'ENTRYPOINT' /usr/local/bin/claude-entrypoint
+#!/bin/bash
+PLUGIN_SETUP_VERSION="v1"
+
+if [ ! -f "$HOME/.claude/.plugins-setup-$PLUGIN_SETUP_VERSION" ]; then
+    echo "Installing Claude Code plugins (first run only)..."
+
+    # External service integrations (official only)
+    claude plugin install github@claude-plugins-official --scope user 2>&1 || true
+    claude plugin install slack@claude-plugins-official --scope user 2>&1 || true
+    claude plugin install linear@claude-plugins-official --scope user 2>&1 || true
+    claude plugin install notion@claude-plugins-official --scope user 2>&1 || true
+
+    # Language server integration (real-time type errors on every edit)
+    claude plugin install typescript-lsp@claude-plugins-official --scope user 2>&1 || true
+    claude plugin install pyright-lsp@claude-plugins-official --scope user 2>&1 || true
+    claude plugin install rust-analyzer-lsp@claude-plugins-official --scope user 2>&1 || true
+
+    # Code quality and review
+    claude plugin install code-review@claude-plugins-official --scope user 2>&1 || true
+    claude plugin install security-guidance@claude-plugins-official --scope user 2>&1 || true
+
+    # Development workflows
+    claude plugin install commit-commands@claude-plugins-official --scope user 2>&1 || true
+    claude plugin install context7@claude-plugins-official --scope user 2>&1 || true
+
+    touch "$HOME/.claude/.plugins-setup-$PLUGIN_SETUP_VERSION"
+    echo "Plugin setup complete."
+fi
+
+exec "$@"
+ENTRYPOINT
+RUN chmod +x /usr/local/bin/claude-entrypoint
+
+ENTRYPOINT ["claude-entrypoint"]
 CMD ["claude"]

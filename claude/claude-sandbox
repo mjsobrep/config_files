@@ -140,7 +140,8 @@ with open(settings_file, 'w') as f:
 " "$settings_file"
     fi
 
-    # Ensure MCP config has required servers
+    # Ensure MCP config has required servers (official implementations only)
+    # External services (GitHub, Slack, Linear, Notion) are handled by plugins
     # Merges into existing config, preserving user-added servers
     local mcp_file="$AUTH_DIR/mcp.json"
     local added
@@ -150,9 +151,10 @@ import sys
 
 mcp_file = sys.argv[1]
 
-# Required MCP servers for sandbox
+# MCP servers for sandbox (official implementations only)
+# Most external services are handled by Claude Code plugins instead
 required_servers = {
-    # AI tool integrations
+    # AI tool integrations (credentials mounted from host)
     'codex': {
         'command': 'codex-mcp-server',
         'args': [],
@@ -163,61 +165,13 @@ required_servers = {
         'args': [],
         'env': {}
     },
+    # Browser automation (sandbox-specific flags for headless Docker)
     'playwright': {
         'command': 'npx',
         'args': ['@playwright/mcp@latest', '--browser', 'chromium', '--headless', '--no-sandbox', '--isolated'],
         'env': {}
     },
-    # Communication & project management (read-only)
-    # Slack: read-only by default (message posting disabled unless SLACK_MCP_ADD_MESSAGE_TOOL=true)
-    # Auth: set SLACK_MCP_XOXP_TOKEN on host
-    'slack': {
-        'command': 'slack-mcp-server',
-        'args': ['--transport', 'stdio'],
-        'env': {}
-    },
-    # Linear: read-only via restricted API key
-    # Auth: set LINEAR_API_KEY on host
-    'linear': {
-        'command': 'npx',
-        'args': ['-y', '@tacticlaunch/mcp-linear'],
-        'env': {}
-    },
-    # Notion: read-only via integration permissions (configure at notion.so/my-integrations)
-    # Auth: set NOTION_TOKEN on host
-    'notion': {
-        'command': 'npx',
-        'args': ['-y', '@notionhq/notion-mcp-server'],
-        'env': {}
-    },
-    # GitHub: read-only mode enforced via GITHUB_READ_ONLY
-    # Auth: set GITHUB_PERSONAL_ACCESS_TOKEN on host
-    'github': {
-        'command': 'github-mcp-server',
-        'args': ['stdio'],
-        'env': {
-            'GITHUB_READ_ONLY': 'true'
-        }
-    },
-    # Google services (read-only)
-    # Auth: OAuth credentials file at ~/.google-mcp/oauth-credentials.json
-    # First-time setup: run auth flow on host (see README)
-    'google-calendar': {
-        'command': 'npx',
-        'args': ['-y', '@cocal/google-calendar-mcp'],
-        'env': {
-            'GOOGLE_OAUTH_CREDENTIALS': '/home/sandbox/.google-mcp/oauth-credentials.json',
-            'GOOGLE_CALENDAR_MCP_TOKEN_PATH': '/home/sandbox/.google-mcp/calendar-token.json',
-            'ENABLED_TOOLS': 'list-calendars,list-events,search-events,get-event,get-freebusy,get-current-time'
-        }
-    },
-    'gmail': {
-        'command': 'npx',
-        'args': ['-y', '@shinzolabs/gmail-mcp'],
-        'env': {
-            'GMAIL_CREDENTIALS_PATH': '/home/sandbox/.google-mcp/'
-        }
-    },
+    # Google Drive (official Anthropic/MCP reference server, inherently read-only)
     'gdrive': {
         'command': 'npx',
         'args': ['-y', '@modelcontextprotocol/server-gdrive'],
@@ -370,12 +324,11 @@ else
     fi
 fi
 
-# Pass through MCP service tokens from host environment (if set)
-for var in SLACK_MCP_XOXP_TOKEN NOTION_TOKEN GITHUB_PERSONAL_ACCESS_TOKEN LINEAR_API_KEY; do
-    if [[ -n "${!var}" ]]; then
-        ENV_ARGS+=(-e "$var=${!var}")
-    fi
-done
+# Pass through GitHub PAT for the GitHub plugin (if set)
+if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
+    ENV_ARGS+=(-e "GITHUB_PERSONAL_ACCESS_TOKEN=$GITHUB_PERSONAL_ACCESS_TOKEN")
+    echo -e "${GREEN}GitHub PAT: available${NC}"
+fi
 
 # Build port mapping args
 PORT_ARGS=()
@@ -383,8 +336,7 @@ for port in "${EXPOSED_PORTS[@]}"; do
     PORT_ARGS+=(-p "$port:$port")
 done
 
-# Build credential volume mounts
-# AI tool credentials (read-only)
+# Build credential volume mounts (read-only)
 CRED_ARGS=()
 if [[ -d "$HOME/.codex" ]]; then
     CRED_ARGS+=(-v "$HOME/.codex:/home/sandbox/.codex:ro")
@@ -393,21 +345,6 @@ fi
 if [[ -d "$HOME/.gemini" ]]; then
     CRED_ARGS+=(-v "$HOME/.gemini:/home/sandbox/.gemini:ro")
     echo -e "${GREEN}Gemini credentials: mounted from ~/.gemini${NC}"
-fi
-# Google OAuth credentials for Calendar, Gmail, Drive MCP servers
-if [[ -d "$HOME/.google-mcp" ]]; then
-    CRED_ARGS+=(-v "$HOME/.google-mcp:/home/sandbox/.google-mcp:ro")
-    echo -e "${GREEN}Google credentials: mounted from ~/.google-mcp${NC}"
-fi
-
-# Show which MCP service tokens are available
-mcp_services=()
-[[ -n "${SLACK_MCP_XOXP_TOKEN:-}" ]] && mcp_services+=("Slack")
-[[ -n "${NOTION_TOKEN:-}" ]] && mcp_services+=("Notion")
-[[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]] && mcp_services+=("GitHub")
-[[ -n "${LINEAR_API_KEY:-}" ]] && mcp_services+=("Linear")
-if [[ ${#mcp_services[@]} -gt 0 ]]; then
-    echo -e "${GREEN}MCP service tokens: ${mcp_services[*]}${NC}"
 fi
 
 # Run the container

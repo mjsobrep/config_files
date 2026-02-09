@@ -18,6 +18,8 @@ For ANY research or development task, always create a multi-agent team. The mini
 
 For research tasks, adapt the team composition to the task (e.g., multiple researcher agents for parallel investigation, a synthesizer to combine findings).
 
+Do not just use sub agents - I expect you to always spawn and manage a team unless you strongly feel that a team is not warranted. In the case that you do not think a team is a good idea, tell me that you believe a team is not needed and why and ask for permission to continue alone or without a team.
+
 ## Plan Before Acting
 
 Before any implementation work:
