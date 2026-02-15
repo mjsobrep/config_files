@@ -83,23 +83,29 @@ On first launch, Claude will prompt you to authenticate in your browser. Credent
 
 On first launch, the sandbox installs official plugins from the [Anthropic marketplace](https://github.com/anthropics/claude-plugins-official). These provide integrations, code intelligence, and development workflows.
 
-### External Services
+### External Services (Read-Only)
 
-Plugins connect to official vendor-hosted MCP endpoints. On first use, each service triggers an OAuth flow in your browser — no API tokens to manage.
+All external service integrations are read-only. Claude can search and read but cannot create, modify, or delete data.
 
-| Plugin | Service | Auth |
-|--------|---------|------|
-| `github` | GitHub (PRs, issues, code search) | `GITHUB_PERSONAL_ACCESS_TOKEN` env var |
-| `slack` | Slack (messages, channels, search) | OAuth (browser popup on first use) |
-| `linear` | Linear (issues, projects) | OAuth (browser popup on first use) |
-| `notion` | Notion (pages, databases, docs) | OAuth (browser popup on first use) |
+| Plugin | Service | Auth | Enforcement |
+|--------|---------|------|-------------|
+| `github` | GitHub (PRs, issues, code search) | Read-only fine-grained PAT | API-layer (token scopes) |
+| `slack` | Slack (messages, channels, search) | OAuth | Deny list (write tools blocked) |
+| `linear` | Linear (issues, projects) | OAuth | Deny list (write tools blocked) |
+| `Notion` | Notion (pages, databases, docs) | OAuth | Deny list (write tools blocked) |
 
-For GitHub, add to `~/.zshrc`:
-```bash
-export GITHUB_PERSONAL_ACCESS_TOKEN="ghp_..."
-```
+**GitHub setup** -- a read-only fine-grained PAT is **required** (not optional):
+1. Go to [GitHub Settings > Fine-grained tokens](https://github.com/settings/personal-access-tokens/new)
+2. Set **Repository access** to "All repositories" (or select specific repos)
+3. Under **Permissions**, grant **read-only** access to:
+   - Repository permissions: Contents, Issues, Pull requests, Metadata
+   - Do NOT grant any write permissions
+4. Add to `~/.zshrc`:
+   ```bash
+   export GITHUB_PERSONAL_ACCESS_TOKEN="github_pat_..."
+   ```
 
-For Slack, Linear, and Notion: just use them — the OAuth flow happens automatically on first use inside the sandbox.
+For Slack, Linear, and Notion: just use them -- the OAuth flow happens automatically on first use inside the sandbox. Write operations are blocked by the deny list in `settings.json`.
 
 ### Code Intelligence (LSP)
 
@@ -124,12 +130,12 @@ Real-time type checking and error detection on every file edit. These require no
 
 These remain as MCP server configs (no official plugin available):
 
-| Service | MCP Server | Auth |
-|---------|-----------|------|
-| OpenAI Codex | `codex-mcp-server` | `codex login` on host |
-| Google Gemini | `gemini-mcp` | `gemini auth login` on host |
-| Playwright | `@playwright/mcp` | None (sandbox-specific headless config) |
-| Google Drive | `@modelcontextprotocol/server-gdrive` | Google OAuth |
+| Service | MCP Server | Auth | Mode |
+|---------|-----------|------|------|
+| OpenAI Codex | `codex-mcp-server` | `codex login` on host | N/A |
+| Google Gemini | `gemini-mcp` | `gemini auth login` on host | N/A |
+| Playwright | `@playwright/mcp` | None (sandbox-specific headless config) | N/A |
+| Google Workspace | `workspace-mcp` | Google OAuth (read-only scopes) | `--read-only` flag |
 
 Codex/Gemini credentials (`~/.codex/`, `~/.gemini/`) are mounted read-only.
 
@@ -195,9 +201,41 @@ This setup relies on Docker's container isolation. On macOS, Docker Desktop runs
 - Current working directory only
 - Claude auth (separate directory)
 - AI tool credentials read-only: `~/.codex/`, `~/.gemini/`
-- GitHub PAT via env var (for GitHub plugin)
+- GitHub PAT via env var (read-only fine-grained PAT for GitHub plugin)
+- Google OAuth credentials via env var (read-only scopes for Google Workspace)
+- Google Workspace token cache (read-write, for OAuth token persistence)
 
 For stronger isolation (e.g., if your project needs Docker-in-Docker), consider running inside a Lima VM.
+
+## Read-Only Enforcement
+
+External service integrations use defense-in-depth:
+
+1. **Claude Code deny list**: Write tool names are blocked in `settings.json` `permissions.deny`. Claude cannot call these tools even though plugins expose them. (27 tools blocked across Slack, Linear, and Notion.)
+2. **API-layer restrictions**: GitHub uses a read-only fine-grained PAT. Google Workspace uses `--read-only` mode which requests only `*.readonly` OAuth scopes.
+
+To apply read-only enforcement to an existing sandbox:
+1. Rebuild: `claude-sandbox --build`
+2. Delete the plugin setup marker: `rm ~/.claude-sandbox-auth/.plugins-setup-v1`
+3. Restart -- plugins will re-install with the fixed Notion name and deny list will be merged
+
+### Google Workspace Setup
+
+Google Workspace integration provides read-only access to Gmail, Drive, Calendar, and Docs.
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create or select a project
+3. Enable APIs: Gmail API, Google Drive API, Google Calendar API, Google Docs API
+4. **Configure OAuth consent screen**:
+   - Add scopes: select ONLY the `*.readonly` variants (`gmail.readonly`, `drive.readonly`, `calendar.readonly`, `documents.readonly`)
+   - Do NOT add any write scopes -- this is server-side enforcement that prevents the OAuth client from ever requesting write access, regardless of the `--read-only` flag
+5. Create OAuth 2.0 credentials (Desktop application type)
+6. Add to `~/.zshrc`:
+   ```bash
+   export GOOGLE_OAUTH_CLIENT_ID="your-client-id"
+   export GOOGLE_OAUTH_CLIENT_SECRET="your-client-secret"
+   ```
+7. On first use inside the sandbox, an OAuth consent flow will open in your browser
 
 ## License
 

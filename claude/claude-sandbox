@@ -109,24 +109,53 @@ ensure_auth_dir() {
         mkdir -p "$AUTH_DIR"
     fi
 
-    # Ensure settings.json has bypassPermissions mode
+    # Ensure settings.json has bypassPermissions mode and read-only deny list
     # Claude Code may create/modify this file when you approve commands,
     # so we need to update it in place rather than overwrite it
+    # Deny list last audited: 2026-02-14. Re-audit write tools after plugin updates.
     local settings_file="$AUTH_DIR/settings.json"
     if [[ ! -f "$settings_file" ]]; then
-        echo -e "${YELLOW}Creating settings with bypass permissions...${NC}"
+        echo -e "${YELLOW}Creating settings with bypass permissions and read-only deny list...${NC}"
         cat > "$settings_file" <<'SETTINGS'
 {
   "permissions": {
     "allow": [],
-    "deny": [],
+    "deny": [
+      "mcp__claude_ai_Slack__slack_send_message",
+      "mcp__claude_ai_Slack__slack_send_message_draft",
+      "mcp__claude_ai_Slack__slack_schedule_message",
+      "mcp__claude_ai_Slack__slack_create_canvas",
+      "mcp__claude_ai_Linear__create_attachment",
+      "mcp__claude_ai_Linear__create_comment",
+      "mcp__claude_ai_Linear__create_document",
+      "mcp__claude_ai_Linear__create_initiative",
+      "mcp__claude_ai_Linear__create_issue",
+      "mcp__claude_ai_Linear__create_issue_label",
+      "mcp__claude_ai_Linear__create_milestone",
+      "mcp__claude_ai_Linear__create_project",
+      "mcp__claude_ai_Linear__delete_attachment",
+      "mcp__claude_ai_Linear__delete_status_update",
+      "mcp__claude_ai_Linear__save_status_update",
+      "mcp__claude_ai_Linear__update_document",
+      "mcp__claude_ai_Linear__update_initiative",
+      "mcp__claude_ai_Linear__update_issue",
+      "mcp__claude_ai_Linear__update_milestone",
+      "mcp__claude_ai_Linear__update_project",
+      "mcp__claude_ai_Notion__notion-create-comment",
+      "mcp__claude_ai_Notion__notion-create-database",
+      "mcp__claude_ai_Notion__notion-create-pages",
+      "mcp__claude_ai_Notion__notion-duplicate-page",
+      "mcp__claude_ai_Notion__notion-move-pages",
+      "mcp__claude_ai_Notion__notion-update-data-source",
+      "mcp__claude_ai_Notion__notion-update-page"
+    ],
     "defaultMode": "bypassPermissions"
   }
 }
 SETTINGS
-    elif ! grep -q '"defaultMode"[[:space:]]*:[[:space:]]*"bypassPermissions"' "$settings_file"; then
-        echo -e "${YELLOW}Updating settings to bypass permissions mode...${NC}"
-        # Use python to safely update JSON (preserves existing allow list)
+    else
+        echo -e "${YELLOW}Updating settings: bypass permissions + read-only deny list...${NC}"
+        # Use python to safely merge JSON (preserves existing allow list and custom deny entries)
         python3 -c "
 import json, sys
 settings_file = sys.argv[1]
@@ -135,6 +164,40 @@ with open(settings_file, 'r') as f:
 if 'permissions' not in settings:
     settings['permissions'] = {}
 settings['permissions']['defaultMode'] = 'bypassPermissions'
+
+# Required deny list for read-only integrations
+required_deny = [
+    'mcp__claude_ai_Slack__slack_send_message',
+    'mcp__claude_ai_Slack__slack_send_message_draft',
+    'mcp__claude_ai_Slack__slack_schedule_message',
+    'mcp__claude_ai_Slack__slack_create_canvas',
+    'mcp__claude_ai_Linear__create_attachment',
+    'mcp__claude_ai_Linear__create_comment',
+    'mcp__claude_ai_Linear__create_document',
+    'mcp__claude_ai_Linear__create_initiative',
+    'mcp__claude_ai_Linear__create_issue',
+    'mcp__claude_ai_Linear__create_issue_label',
+    'mcp__claude_ai_Linear__create_milestone',
+    'mcp__claude_ai_Linear__create_project',
+    'mcp__claude_ai_Linear__delete_attachment',
+    'mcp__claude_ai_Linear__delete_status_update',
+    'mcp__claude_ai_Linear__save_status_update',
+    'mcp__claude_ai_Linear__update_document',
+    'mcp__claude_ai_Linear__update_initiative',
+    'mcp__claude_ai_Linear__update_issue',
+    'mcp__claude_ai_Linear__update_milestone',
+    'mcp__claude_ai_Linear__update_project',
+    'mcp__claude_ai_Notion__notion-create-comment',
+    'mcp__claude_ai_Notion__notion-create-database',
+    'mcp__claude_ai_Notion__notion-create-pages',
+    'mcp__claude_ai_Notion__notion-duplicate-page',
+    'mcp__claude_ai_Notion__notion-move-pages',
+    'mcp__claude_ai_Notion__notion-update-data-source',
+    'mcp__claude_ai_Notion__notion-update-page',
+]
+existing_deny = set(settings['permissions'].get('deny', []))
+merged_deny = sorted(set(required_deny) | existing_deny)
+settings['permissions']['deny'] = merged_deny
 with open(settings_file, 'w') as f:
     json.dump(settings, f, indent=2)
 " "$settings_file"
@@ -171,10 +234,10 @@ required_servers = {
         'args': ['@playwright/mcp@latest', '--browser', 'chromium', '--headless', '--no-sandbox', '--isolated'],
         'env': {}
     },
-    # Google Drive (official Anthropic/MCP reference server, inherently read-only)
-    'gdrive': {
-        'command': 'npx',
-        'args': ['-y', '@modelcontextprotocol/server-gdrive'],
+    # Google Workspace (read-only: --read-only requests only *.readonly OAuth scopes)
+    'google-workspace': {
+        'command': 'workspace-mcp',
+        'args': ['--read-only', '--tools', 'gmail', 'drive', 'calendar', 'docs'],
         'env': {}
     }
 }
@@ -189,6 +252,14 @@ except (FileNotFoundError, json.JSONDecodeError):
 if 'mcpServers' not in config:
     config['mcpServers'] = {}
 
+# Remove stale entries (replaced by newer integrations)
+stale_servers = ['gdrive']
+changed = False
+for name in stale_servers:
+    if name in config['mcpServers']:
+        del config['mcpServers'][name]
+        changed = True
+
 # Add missing servers
 added = []
 for name, server in required_servers.items():
@@ -197,7 +268,7 @@ for name, server in required_servers.items():
         added.append(name)
 
 # Write back if changes were made
-if added:
+if added or changed:
     with open(mcp_file, 'w') as f:
         json.dump(config, f, indent=2)
     print(', '.join(added))
@@ -325,9 +396,16 @@ else
 fi
 
 # Pass through GitHub PAT for the GitHub plugin (if set)
+# IMPORTANT: Use a fine-grained PAT with read-only repository permissions
 if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
     ENV_ARGS+=(-e "GITHUB_PERSONAL_ACCESS_TOKEN=$GITHUB_PERSONAL_ACCESS_TOKEN")
     echo -e "${GREEN}GitHub PAT: available${NC}"
+fi
+
+# Pass through Google OAuth credentials for Google Workspace MCP (if set)
+if [[ -n "${GOOGLE_OAUTH_CLIENT_ID:-}" && -n "${GOOGLE_OAUTH_CLIENT_SECRET:-}" ]]; then
+    ENV_ARGS+=(-e "GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID" -e "GOOGLE_OAUTH_CLIENT_SECRET=$GOOGLE_OAUTH_CLIENT_SECRET")
+    echo -e "${GREEN}Google Workspace OAuth: available${NC}"
 fi
 
 # Build port mapping args
@@ -346,6 +424,11 @@ if [[ -d "$HOME/.gemini" ]]; then
     CRED_ARGS+=(-v "$HOME/.gemini:/home/sandbox/.gemini:ro")
     echo -e "${GREEN}Gemini credentials: mounted from ~/.gemini${NC}"
 fi
+
+# Google Workspace MCP token persistence (read-write: server needs to write/refresh tokens)
+GOOGLE_WS_DIR="$AUTH_DIR/.google-workspace-mcp"
+mkdir -p "$GOOGLE_WS_DIR"
+CRED_ARGS+=(-v "$GOOGLE_WS_DIR:/home/sandbox/.google-workspace-mcp")
 
 # Run the container
 # --user: Run as current user so files created in /workspace have correct ownership on host

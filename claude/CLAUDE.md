@@ -63,3 +63,17 @@ At the start of every new major project:
 1. Draft a **project description** collaboratively. This should cover the problem being solved, target users, success criteria, scope boundaries, and key constraints.
 2. Save the project description in the repo as `project-<project_name>.md`.
 3. Reference the project description throughout development to stay aligned on goals and scope. When in doubt about a decision, go back to the project description.
+
+## Read-Only External Services
+
+All external service integrations are **read-only**. You can search, read, and reference information but cannot create, modify, or delete data in any external service.
+
+**Enforced via deny list** (Slack, Linear, Notion):
+- Write tool calls are blocked in permissions settings
+- Attempting to call a write tool will be denied
+
+**Enforced via API** (GitHub, Google Workspace):
+- GitHub uses a read-only fine-grained Personal Access Token (required -- not optional)
+- Google Workspace uses read-only OAuth scopes (`gmail.readonly`, `drive.readonly`, `calendar.readonly`, `documents.readonly`)
+
+If you need to create or modify data in an external service, ask the user to do it directly.

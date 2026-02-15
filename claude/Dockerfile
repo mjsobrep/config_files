@@ -53,11 +53,6 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL "https://github.com/foxglove/mcap/releases/download/releases%2Fmcap-cli%2Fv0.0.59/mcap-linux-amd64" -o /usr/local/bin/mcap \
     && chmod +x /usr/local/bin/mcap
 
-# Install Claude Code (installs to /root/.local/bin as root)
-# Pass --build-arg CLAUDE_CACHEBUST=$(date +%s) to force reinstall
-ARG CLAUDE_CACHEBUST=1
-RUN curl -fsSL https://claude.ai/install.sh | bash
-
 # AI tool CLIs for MCP integration (Codex, Gemini)
 # Credentials are mounted read-only from host at runtime
 RUN npm install -g @openai/codex @google/gemini-cli
@@ -71,30 +66,57 @@ RUN npm install -g codex-mcp-server gemini-mcp
 RUN npm install -g @playwright/mcp@latest \
     && npx playwright install --with-deps chromium
 
-# Google Drive MCP server (official Anthropic/MCP reference server)
-RUN npm install -g @modelcontextprotocol/server-gdrive
+# Google Workspace MCP server (read-only mode, community maintained)
+# Uses --read-only flag to request only *.readonly OAuth scopes
+RUN pip3 install --break-system-packages workspace-mcp==1.11.1
 
 # Language server binaries for LSP plugins (real-time type checking on every edit)
 RUN npm install -g typescript-language-server typescript pyright
 RUN rustup component add rust-analyzer
 
-# Claude is installed at /root/.local/bin; also add $HOME/.local/bin to silence doctor warnings
-ENV PATH="/home/sandbox/.local/bin:/root/.local/bin:$PATH"
-
 # Create a home directory that will be used at runtime
 # The actual UID will be set via --user at runtime, but we need the directory to exist
 RUN mkdir -p /home/sandbox && chmod 777 /home/sandbox
 
-# Bake in Claude Code settings with bypass permissions
+# Bake in Claude Code settings with bypass permissions and read-only deny list
 # This ensures sandbox always has correct permissions regardless of project settings
 # Note: The volume mount at runtime hides these, so claude-sandbox script also ensures
 # settings.json exists in the mounted auth directory
+# Deny list last audited: 2026-02-14. Re-audit write tools after plugin updates.
 RUN mkdir -p /home/sandbox/.claude && chmod 777 /home/sandbox/.claude
 COPY <<'SETTINGS' /home/sandbox/.claude/settings.json
 {
   "permissions": {
     "allow": [],
-    "deny": [],
+    "deny": [
+      "mcp__claude_ai_Slack__slack_send_message",
+      "mcp__claude_ai_Slack__slack_send_message_draft",
+      "mcp__claude_ai_Slack__slack_schedule_message",
+      "mcp__claude_ai_Slack__slack_create_canvas",
+      "mcp__claude_ai_Linear__create_attachment",
+      "mcp__claude_ai_Linear__create_comment",
+      "mcp__claude_ai_Linear__create_document",
+      "mcp__claude_ai_Linear__create_initiative",
+      "mcp__claude_ai_Linear__create_issue",
+      "mcp__claude_ai_Linear__create_issue_label",
+      "mcp__claude_ai_Linear__create_milestone",
+      "mcp__claude_ai_Linear__create_project",
+      "mcp__claude_ai_Linear__delete_attachment",
+      "mcp__claude_ai_Linear__delete_status_update",
+      "mcp__claude_ai_Linear__save_status_update",
+      "mcp__claude_ai_Linear__update_document",
+      "mcp__claude_ai_Linear__update_initiative",
+      "mcp__claude_ai_Linear__update_issue",
+      "mcp__claude_ai_Linear__update_milestone",
+      "mcp__claude_ai_Linear__update_project",
+      "mcp__claude_ai_Notion__notion-create-comment",
+      "mcp__claude_ai_Notion__notion-create-database",
+      "mcp__claude_ai_Notion__notion-create-pages",
+      "mcp__claude_ai_Notion__notion-duplicate-page",
+      "mcp__claude_ai_Notion__notion-move-pages",
+      "mcp__claude_ai_Notion__notion-update-data-source",
+      "mcp__claude_ai_Notion__notion-update-page"
+    ],
     "defaultMode": "bypassPermissions"
   }
 }
@@ -147,7 +169,7 @@ RUN printf '#!/bin/bash\necho "$*" > /workspace/.commit-msg\necho "Commit messag
 # Bump PLUGIN_SETUP_VERSION to trigger re-install after adding new plugins
 COPY <<'ENTRYPOINT' /usr/local/bin/claude-entrypoint
 #!/bin/bash
-PLUGIN_SETUP_VERSION="v1"
+PLUGIN_SETUP_VERSION="v2"
 
 if [ ! -f "$HOME/.claude/.plugins-setup-$PLUGIN_SETUP_VERSION" ]; then
     echo "Installing Claude Code plugins (first run only)..."
@@ -156,7 +178,7 @@ if [ ! -f "$HOME/.claude/.plugins-setup-$PLUGIN_SETUP_VERSION" ]; then
     claude plugin install github@claude-plugins-official --scope user 2>&1 || true
     claude plugin install slack@claude-plugins-official --scope user 2>&1 || true
     claude plugin install linear@claude-plugins-official --scope user 2>&1 || true
-    claude plugin install notion@claude-plugins-official --scope user 2>&1 || true
+    claude plugin install Notion@claude-plugins-official --scope user 2>&1 || true
 
     # Language server integration (real-time type errors on every edit)
     claude plugin install typescript-lsp@claude-plugins-official --scope user 2>&1 || true
@@ -178,6 +200,14 @@ fi
 exec "$@"
 ENTRYPOINT
 RUN chmod +x /usr/local/bin/claude-entrypoint
+
+# --- Claude Code install (LAST so cachebust only affects this layer) ---
+# Install Claude Code and copy to /usr/local/bin for non-root access
+# (avoids conflict with /workspace/claude/ directory when cwd is /workspace)
+ARG CLAUDE_CACHEBUST=1
+RUN curl -fsSL https://claude.ai/install.sh | bash \
+    && cp /root/.local/bin/claude /usr/local/bin/claude \
+    && chmod +x /usr/local/bin/claude
 
 ENTRYPOINT ["claude-entrypoint"]
 CMD ["claude"]
