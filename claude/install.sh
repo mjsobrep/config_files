@@ -32,6 +32,16 @@ echo -e "${GREEN}✓${NC} Linked Dockerfile -> $CONFIG_DIR/Dockerfile"
 ln -sf "$SCRIPT_DIR/CLAUDE.md" "$CONFIG_DIR/CLAUDE.md"
 echo -e "${GREEN}✓${NC} Linked CLAUDE.md -> $CONFIG_DIR/CLAUDE.md"
 
+# Symlink egress filter proxy files
+ln -sf "$SCRIPT_DIR/Dockerfile.proxy" "$CONFIG_DIR/Dockerfile.proxy"
+echo -e "${GREEN}✓${NC} Linked Dockerfile.proxy -> $CONFIG_DIR/Dockerfile.proxy"
+
+ln -sf "$SCRIPT_DIR/squid.conf" "$CONFIG_DIR/squid.conf"
+echo -e "${GREEN}✓${NC} Linked squid.conf -> $CONFIG_DIR/squid.conf"
+
+ln -sf "$SCRIPT_DIR/allowlist.txt" "$CONFIG_DIR/allowlist.txt"
+echo -e "${GREEN}✓${NC} Linked allowlist.txt -> $CONFIG_DIR/allowlist.txt"
+
 # Install/update MCP config for AI tool integration (host usage, outside sandbox)
 # This enables Claude on your Mac to use Codex, Gemini via MCP
 # Merges into existing config, preserving user-added servers

@@ -70,6 +70,16 @@ RUN npm install -g @playwright/mcp@latest \
 # Uses --read-only flag to request only *.readonly OAuth scopes
 RUN pip3 install --break-system-packages workspace-mcp==1.11.1
 
+# Proxy support for egress filtering (global-agent patches Node.js http/https).
+# This is a USABILITY feature, not the security boundary. The Docker --internal
+# network is the real enforcement -- even without global-agent, the sandbox cannot
+# reach the internet. global-agent just makes Node.js tools work through the proxy.
+# When GLOBAL_AGENT_HTTP_PROXY / GLOBAL_AGENT_HTTPS_PROXY env vars are set,
+# all Node.js HTTP/HTTPS traffic is routed through the proxy.
+# When no proxy env vars are set (--no-egress-filter), global-agent is a no-op.
+# Pinned version for supply chain safety. Audit before upgrading.
+RUN npm install -g global-agent@4.1.2
+
 # Language server binaries for LSP plugins (real-time type checking on every edit)
 RUN npm install -g typescript-language-server typescript pyright
 RUN rustup component add rust-analyzer
@@ -206,8 +216,13 @@ RUN chmod +x /usr/local/bin/claude-entrypoint
 # (avoids conflict with /workspace/claude/ directory when cwd is /workspace)
 ARG CLAUDE_CACHEBUST=1
 RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && cp /root/.local/bin/claude /usr/local/bin/claude \
+    && cp "$HOME/.local/bin/claude" /usr/local/bin/claude \
     && chmod +x /usr/local/bin/claude
+
+# Proxy support: NODE_PATH lets --require find globally installed global-agent.
+# Set after all build-time npm installs to avoid breaking them during the build.
+ENV NODE_PATH=/usr/local/lib/node_modules
+ENV NODE_OPTIONS="--require global-agent/bootstrap"
 
 ENTRYPOINT ["claude-entrypoint"]
 CMD ["claude"]

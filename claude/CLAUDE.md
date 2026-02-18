@@ -64,6 +64,16 @@ At the start of every new major project:
 2. Save the project description in the repo as `project-<project_name>.md`.
 3. Reference the project description throughout development to stay aligned on goals and scope. When in doubt about a decision, go back to the project description.
 
+## Network Egress Filtering
+
+This sandbox uses network egress filtering. All outbound traffic is routed through a proxy that only allows connections to an explicit domain allowlist. You cannot reach arbitrary internet hosts.
+
+**What works**: All configured service integrations (Anthropic API, GitHub, Slack, Linear, Notion, Google Workspace, npm/PyPI/crates.io registries) are allowlisted.
+
+**What is blocked**: Any connection to a domain not on the allowlist, including raw TCP/UDP, DNS resolution of external hosts, and ICMP.
+
+If you need to access a domain that is blocked, inform the user. They can add it to the allowlist (`~/.config/claude-sandbox/allowlist.txt`) and rebuild the proxy image.
+
 ## Read-Only External Services
 
 All external service integrations are **read-only**. You can search, read, and reference information but cannot create, modify, or delete data in any external service.

@@ -18,11 +18,14 @@ AI coding tools can execute arbitrary commands. This setup ensures:
 
 ```
 claude-sandbox/
-├── README.md         # You are here
-├── install.sh        # Symlinks files into place
-├── claude-sandbox    # Launcher script
-├── Dockerfile        # Container definition
-└── CLAUDE.md         # Default instructions for Claude in sandbox
+├── README.md           # You are here
+├── install.sh          # Symlinks files into place
+├── claude-sandbox      # Launcher script
+├── Dockerfile          # Container definition (sandbox)
+├── Dockerfile.proxy    # Container definition (egress filter proxy)
+├── squid.conf          # Squid proxy configuration
+├── allowlist.txt       # Domain allowlist for egress filtering
+└── CLAUDE.md           # Default instructions for Claude in sandbox
 ```
 
 ## Install
@@ -56,6 +59,12 @@ claude-sandbox --shell
 
 # Rebuild after Dockerfile changes
 claude-sandbox --build
+
+# Disable egress filtering (for debugging network issues)
+claude-sandbox --no-egress-filter
+
+# Clean up proxy container and internal network
+claude-sandbox --cleanup
 ```
 
 ## First Run
@@ -102,8 +111,9 @@ All external service integrations are read-only. Claude can search and read but 
    - Do NOT grant any write permissions
 4. Add to `~/.zshrc`:
    ```bash
-   export GITHUB_PERSONAL_ACCESS_TOKEN="github_pat_..."
+   export CLAUDE_SANDBOX_GITHUB_PAT="github_pat_..."
    ```
+   Note: The sandbox reads `CLAUDE_SANDBOX_GITHUB_PAT` (not `GITHUB_PERSONAL_ACCESS_TOKEN`) to avoid accidentally passing a broad-access token from other tools.
 
 For Slack, Linear, and Notion: just use them -- the OAuth flow happens automatically on first use inside the sandbox. Write operations are blocked by the deny list in `settings.json`.
 
@@ -166,7 +176,7 @@ Edit `claude-sandbox` script to adjust.
 
 **Reset Claude authentication:**
 ```bash
-docker volume rm claude-auth
+rm -rf ~/.claude-sandbox-auth
 ```
 
 **Permission denied on project files:**
@@ -179,12 +189,112 @@ The container runs as uid 1000. If your Mac user has a different uid, edit the `
 
 **Container can't access network:**
 
-Network access is enabled by default. If you disabled it and need it back, remove `--network none` from the script.
+Network egress is filtered by default through a proxy allowlist. If a domain you need is blocked, see [Network Egress Filtering](#network-egress-filtering) for how to add custom domains. For unrestricted access, use `--no-egress-filter`.
 
 **Rebuild from scratch:**
 ```bash
 docker rmi claude-sandbox
 claude-sandbox --build
+```
+
+**A tool or command fails with a connection error (egress filter):**
+
+The domain may not be on the allowlist. Check the proxy logs:
+```bash
+# Show denied requests
+docker logs claude-sandbox-proxy 2>&1 | grep "TCP_DENIED"
+
+# Follow logs in real-time while reproducing the issue
+docker logs -f claude-sandbox-proxy
+```
+
+Add the missing domain to `~/.config/claude-sandbox/allowlist.txt`, then reload squid:
+```bash
+docker exec claude-sandbox-proxy squid -k reconfigure
+```
+
+If you baked the allowlist into the image instead of volume-mounting, rebuild:
+```bash
+docker rm -f claude-sandbox-proxy && docker rmi claude-sandbox-proxy
+```
+
+**Proxy won't start or image build fails:**
+```bash
+# Check proxy container logs
+docker logs claude-sandbox-proxy
+
+# Full cleanup and retry
+claude-sandbox --cleanup
+claude-sandbox --build
+```
+
+## Network Egress Filtering
+
+All outbound network traffic from the sandbox is filtered through a squid proxy that enforces a domain allowlist. The sandbox container runs on a Docker internal network with no direct internet access -- all HTTP/HTTPS must pass through the proxy.
+
+**Architecture:**
+- The sandbox container sits on an isolated Docker network (`claude-sandbox-net`, `--internal`)
+- A squid proxy container (`claude-sandbox-proxy`) bridges the internal and default networks
+- Only HTTP/HTTPS to domains in `allowlist.txt` is permitted; everything else is denied
+- Raw TCP, UDP, DNS, and ICMP from the sandbox are blocked at the network level
+
+**Allowlisted domains** (see `allowlist.txt` for full list):
+- Anthropic API (`.anthropic.com`, `.claude.ai`)
+- MCP plugin endpoints (`mcp.slack.com`, `mcp.linear.app`, `api.notion.com`)
+- GitHub (`api.github.com`, `github.com`)
+- Google Workspace APIs (`.googleapis.com`, `accounts.google.com`)
+- Package registries (`registry.npmjs.org`, `pypi.org`, `crates.io`)
+
+**Node.js proxy support:** The `global-agent` npm package is pre-installed and loaded via `NODE_OPTIONS`. This patches Node.js `http`/`https` to respect proxy environment variables, ensuring all Node.js processes (Claude Code, MCP servers, user scripts) route through the proxy. Note: `global-agent` is a usability feature, not the security boundary. The Docker `--internal` network is the real enforcement -- even without `global-agent`, the sandbox cannot reach the internet.
+
+**Playwright browser isolation:** When egress filtering is active, the Chromium browser launched by Playwright MCP cannot access the internet. Playwright is primarily useful for testing local dev servers (`localhost`) in this mode. For web browsing, use the WebFetch tool (which routes through the Anthropic API) or disable egress filtering.
+
+**Trust boundary:** Every domain on the allowlist can see all HTTPS traffic sent to it (they terminate TLS). For first-party and major-vendor domains (Anthropic, Google, GitHub, Slack, Linear, Notion) this is expected. Third-party domains (context7.com, fireflies.ai) have a weaker trust boundary. If this is a concern, remove them from `allowlist.txt`.
+
+### Adding Custom Domains
+
+If your project needs to reach an API not on the allowlist:
+
+1. Edit `~/.config/claude-sandbox/allowlist.txt` (or the source file in your dotfiles)
+2. Add the domain (one per line; prefix with `.` for subdomain matching)
+3. Reload squid to pick up the change (the allowlist is volume-mounted):
+   ```bash
+   docker exec claude-sandbox-proxy squid -k reconfigure
+   ```
+   If the proxy was started before the allowlist file existed, rebuild instead:
+   ```bash
+   docker rm -f claude-sandbox-proxy && docker rmi claude-sandbox-proxy
+   ```
+
+### Disabling Egress Filtering
+
+For debugging, you can disable egress filtering entirely:
+
+```bash
+claude-sandbox --no-egress-filter
+```
+
+This gives the sandbox unrestricted internet access (same as before egress filtering was added).
+
+### Proxy Lifecycle
+
+The proxy container (`claude-sandbox-proxy`) stays running between sandbox sessions to avoid startup latency. Multiple concurrent sandbox sessions share the same proxy. To clean up:
+
+```bash
+claude-sandbox --cleanup
+```
+
+### Proxy Logs
+
+```bash
+# View all proxy logs
+docker logs claude-sandbox-proxy
+
+# Follow logs in real-time
+docker logs -f claude-sandbox-proxy
+
+# View only denied requests (useful for debugging allowlist)
+docker logs claude-sandbox-proxy 2>&1 | grep "TCP_DENIED"
 ```
 
 ## Security Notes
@@ -201,8 +311,8 @@ This setup relies on Docker's container isolation. On macOS, Docker Desktop runs
 - Current working directory only
 - Claude auth (separate directory)
 - AI tool credentials read-only: `~/.codex/`, `~/.gemini/`
-- GitHub PAT via env var (read-only fine-grained PAT for GitHub plugin)
-- Google OAuth credentials via env var (read-only scopes for Google Workspace)
+- GitHub PAT via env var (read-only fine-grained PAT, from `CLAUDE_SANDBOX_GITHUB_PAT`)
+- Google OAuth credentials via env var (read-only scopes, from `CLAUDE_SANDBOX_GOOGLE_*`)
 - Google Workspace token cache (read-write, for OAuth token persistence)
 
 For stronger isolation (e.g., if your project needs Docker-in-Docker), consider running inside a Lima VM.
@@ -216,7 +326,7 @@ External service integrations use defense-in-depth:
 
 To apply read-only enforcement to an existing sandbox:
 1. Rebuild: `claude-sandbox --build`
-2. Delete the plugin setup marker: `rm ~/.claude-sandbox-auth/.plugins-setup-v1`
+2. Delete the plugin setup marker: `rm ~/.claude-sandbox-auth/.plugins-setup-v2`
 3. Restart -- plugins will re-install with the fixed Notion name and deny list will be merged
 
 ### Google Workspace Setup
@@ -232,8 +342,8 @@ Google Workspace integration provides read-only access to Gmail, Drive, Calendar
 5. Create OAuth 2.0 credentials (Desktop application type)
 6. Add to `~/.zshrc`:
    ```bash
-   export GOOGLE_OAUTH_CLIENT_ID="your-client-id"
-   export GOOGLE_OAUTH_CLIENT_SECRET="your-client-secret"
+   export CLAUDE_SANDBOX_GOOGLE_CLIENT_ID="your-client-id"
+   export CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET="your-client-secret"
    ```
 7. On first use inside the sandbox, an OAuth consent flow will open in your browser
 

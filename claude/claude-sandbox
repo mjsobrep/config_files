@@ -10,6 +10,12 @@ CONTAINER_NAME="claude-sandbox-$$"
 # Docker volumes are created as root, causing permission issues with --user
 AUTH_DIR="$HOME/.claude-sandbox-auth"
 
+# Egress filter proxy settings
+PROXY_CONTAINER_NAME="claude-sandbox-proxy"
+PROXY_NETWORK_NAME="claude-sandbox-net"
+PROXY_PORT=3128
+PROXY_IMAGE="claude-sandbox-proxy"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -26,6 +32,8 @@ usage() {
     echo "  -s, --shell       Start a bash shell instead of Claude"
     echo "  -n, --no-commit   Block git commits (default: commits allowed, push blocked)"
     echo "  -p, --port PORT   Expose a port (can be used multiple times)"
+    echo "  --no-egress-filter  Disable network egress filtering (for debugging)"
+    echo "  --cleanup           Stop proxy container and remove internal network"
     echo "  -h, --help        Show this help message"
     echo ""
     echo "Examples:"
@@ -294,10 +302,120 @@ PYTHON
     fi
 }
 
+ensure_proxy_network() {
+    # Create the internal network if it doesn't exist
+    if ! docker network inspect "$PROXY_NETWORK_NAME" &>/dev/null; then
+        echo -e "${YELLOW}Creating internal Docker network: $PROXY_NETWORK_NAME${NC}"
+        docker network create --internal "$PROXY_NETWORK_NAME"
+    fi
+}
+
+ensure_proxy_image() {
+    if ! docker image inspect "$PROXY_IMAGE" &>/dev/null; then
+        echo -e "${YELLOW}Building proxy image...${NC}"
+        local proxy_dockerfile=""
+        if [[ -f "$HOME/.config/claude-sandbox/Dockerfile.proxy" ]]; then
+            proxy_dockerfile="$HOME/.config/claude-sandbox/Dockerfile.proxy"
+        elif [[ -f "$HOME/.claude-sandbox/Dockerfile.proxy" ]]; then
+            proxy_dockerfile="$HOME/.claude-sandbox/Dockerfile.proxy"
+        else
+            echo -e "${RED}Error: Dockerfile.proxy not found${NC}"
+            echo "Place it next to your Dockerfile at one of:"
+            echo "  ~/.config/claude-sandbox/Dockerfile.proxy"
+            echo "  ~/.claude-sandbox/Dockerfile.proxy"
+            exit 1
+        fi
+        proxy_dockerfile="$(readlink -f "$proxy_dockerfile")"
+        docker build -t "$PROXY_IMAGE" -f "$proxy_dockerfile" "$(dirname "$proxy_dockerfile")"
+    fi
+}
+
+ensure_proxy() {
+    # Check if proxy container is already running
+    if docker ps --format '{{.Names}}' | grep -q "^${PROXY_CONTAINER_NAME}$"; then
+        # Verify the running proxy was built from our image (defense-in-depth against
+        # a pre-existing container with the same name that doesn't filter traffic)
+        local running_image
+        running_image=$(docker inspect --format='{{.Config.Image}}' "$PROXY_CONTAINER_NAME" 2>/dev/null || true)
+        if [[ "$running_image" != "$PROXY_IMAGE" ]]; then
+            echo -e "${RED}WARNING: Proxy container running unexpected image: $running_image (expected: $PROXY_IMAGE)${NC}"
+            echo -e "${YELLOW}Stopping and recreating with correct image...${NC}"
+            docker stop "$PROXY_CONTAINER_NAME" >/dev/null && docker rm "$PROXY_CONTAINER_NAME" >/dev/null
+        else
+            echo -e "${GREEN}Proxy container already running${NC}"
+            return 0
+        fi
+    fi
+
+    # Remove stopped proxy container if it exists
+    if docker ps -a --format '{{.Names}}' | grep -q "^${PROXY_CONTAINER_NAME}$"; then
+        echo -e "${YELLOW}Removing stopped proxy container...${NC}"
+        docker rm "$PROXY_CONTAINER_NAME" >/dev/null
+    fi
+
+    # Ensure proxy image exists
+    ensure_proxy_image
+
+    # Resolve the allowlist file path for volume mounting
+    local allowlist_file=""
+    if [[ -f "$HOME/.config/claude-sandbox/allowlist.txt" ]]; then
+        allowlist_file="$(readlink -f "$HOME/.config/claude-sandbox/allowlist.txt")"
+    elif [[ -f "$HOME/.claude-sandbox/allowlist.txt" ]]; then
+        allowlist_file="$(readlink -f "$HOME/.claude-sandbox/allowlist.txt")"
+    fi
+
+    echo -e "${YELLOW}Starting proxy container...${NC}"
+
+    # Start proxy on bridge network first (so DNS works immediately), then connect
+    # to internal network. This avoids DNS errors during squid startup.
+    local volume_args=()
+    if [[ -n "$allowlist_file" ]]; then
+        # Volume-mount the allowlist so users can edit and reload without rebuilding:
+        #   docker exec claude-sandbox-proxy squid -k reconfigure
+        volume_args=(-v "$allowlist_file:/etc/squid/allowlist.txt:ro")
+    fi
+
+    docker run -d \
+        --name "$PROXY_CONTAINER_NAME" \
+        --restart unless-stopped \
+        --memory=256m \
+        --cpus=0.5 \
+        "${volume_args[@]}" \
+        "$PROXY_IMAGE"
+
+    # Connect to the internal network so sandbox containers can reach the proxy
+    docker network connect "$PROXY_NETWORK_NAME" "$PROXY_CONTAINER_NAME"
+
+    # Wait for squid to be ready (accepts connections on port 3128)
+    echo -e "${YELLOW}Waiting for proxy to be ready...${NC}"
+    local retries=0
+    local max_retries=30
+    while ! docker exec "$PROXY_CONTAINER_NAME" \
+        sh -c "wget -q --spider http://localhost:$PROXY_PORT 2>/dev/null"; do
+        retries=$((retries + 1))
+        if [[ $retries -ge $max_retries ]]; then
+            echo -e "${RED}Proxy failed to start within ${max_retries}s${NC}"
+            echo -e "${RED}Check logs: docker logs $PROXY_CONTAINER_NAME${NC}"
+            exit 1
+        fi
+        sleep 1
+    done
+    echo -e "${GREEN}Proxy is ready${NC}"
+}
+
+cleanup_proxy() {
+    echo -e "${YELLOW}Cleaning up egress filter infrastructure...${NC}"
+    docker stop "$PROXY_CONTAINER_NAME" 2>/dev/null && docker rm "$PROXY_CONTAINER_NAME" 2>/dev/null || true
+    docker network rm "$PROXY_NETWORK_NAME" 2>/dev/null || true
+    echo -e "${GREEN}Cleanup complete${NC}"
+}
+
 # Parse arguments
 FORCE_BUILD=false
 START_SHELL=false
 NO_COMMIT=false
+NO_EGRESS_FILTER=false
+DO_CLEANUP=false
 EXPOSED_PORTS=()
 CLAUDE_ARGS=()
 
@@ -323,6 +441,14 @@ while [[ $# -gt 0 ]]; do
             EXPOSED_PORTS+=("$2")
             shift 2
             ;;
+        --no-egress-filter)
+            NO_EGRESS_FILTER=true
+            shift
+            ;;
+        --cleanup)
+            DO_CLEANUP=true
+            shift
+            ;;
         -h|--help)
             usage
             exit 0
@@ -334,9 +460,18 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Handle cleanup command
+if [[ "$DO_CLEANUP" == "true" ]]; then
+    cleanup_proxy
+    exit 0
+fi
+
 # Build if requested or needed
 if [[ "$FORCE_BUILD" == "true" ]]; then
     build_image
+    # Also remove proxy image so it gets rebuilt with updated config/allowlist
+    docker rmi "$PROXY_IMAGE" 2>/dev/null || true
+    docker stop "$PROXY_CONTAINER_NAME" 2>/dev/null && docker rm "$PROXY_CONTAINER_NAME" 2>/dev/null || true
 else
     ensure_image
 fi
@@ -395,17 +530,25 @@ else
     fi
 fi
 
-# Pass through GitHub PAT for the GitHub plugin (if set)
-# IMPORTANT: Use a fine-grained PAT with read-only repository permissions
-if [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
-    ENV_ARGS+=(-e "GITHUB_PERSONAL_ACCESS_TOKEN=$GITHUB_PERSONAL_ACCESS_TOKEN")
-    echo -e "${GREEN}GitHub PAT: available${NC}"
+# Service credentials use CLAUDE_SANDBOX_* env vars to avoid accidentally passing
+# broad-access tokens from other tools. The sandbox maps them to what plugins/servers expect.
+#
+# GitHub: CLAUDE_SANDBOX_GITHUB_PAT -> GITHUB_PERSONAL_ACCESS_TOKEN (plugin expects this)
+# Google: CLAUDE_SANDBOX_GOOGLE_CLIENT_ID -> GOOGLE_OAUTH_CLIENT_ID
+#         CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET -> GOOGLE_OAUTH_CLIENT_SECRET
+#
+# IMPORTANT: GitHub PAT must be a fine-grained token with read-only repository permissions.
+if [[ -n "${CLAUDE_SANDBOX_GITHUB_PAT:-}" ]]; then
+    ENV_ARGS+=(-e "GITHUB_PERSONAL_ACCESS_TOKEN=$CLAUDE_SANDBOX_GITHUB_PAT")
+    echo -e "${GREEN}GitHub PAT: available (from CLAUDE_SANDBOX_GITHUB_PAT)${NC}"
+elif [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
+    echo -e "${YELLOW}Warning: GITHUB_PERSONAL_ACCESS_TOKEN is set but not used.${NC}"
+    echo -e "${YELLOW}  Set CLAUDE_SANDBOX_GITHUB_PAT to a read-only fine-grained PAT instead.${NC}"
 fi
 
-# Pass through Google OAuth credentials for Google Workspace MCP (if set)
-if [[ -n "${GOOGLE_OAUTH_CLIENT_ID:-}" && -n "${GOOGLE_OAUTH_CLIENT_SECRET:-}" ]]; then
-    ENV_ARGS+=(-e "GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID" -e "GOOGLE_OAUTH_CLIENT_SECRET=$GOOGLE_OAUTH_CLIENT_SECRET")
-    echo -e "${GREEN}Google Workspace OAuth: available${NC}"
+if [[ -n "${CLAUDE_SANDBOX_GOOGLE_CLIENT_ID:-}" && -n "${CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET:-}" ]]; then
+    ENV_ARGS+=(-e "GOOGLE_OAUTH_CLIENT_ID=$CLAUDE_SANDBOX_GOOGLE_CLIENT_ID" -e "GOOGLE_OAUTH_CLIENT_SECRET=$CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET")
+    echo -e "${GREEN}Google Workspace OAuth: available (from CLAUDE_SANDBOX_GOOGLE_*)${NC}"
 fi
 
 # Build port mapping args
@@ -430,6 +573,43 @@ GOOGLE_WS_DIR="$AUTH_DIR/.google-workspace-mcp"
 mkdir -p "$GOOGLE_WS_DIR"
 CRED_ARGS+=(-v "$GOOGLE_WS_DIR:/home/sandbox/.google-workspace-mcp")
 
+# Egress filtering setup
+NETWORK_ARGS=()
+PROXY_ENV_ARGS=()
+HOST_ARGS=(--add-host=host.docker.internal:host-gateway)
+
+if [[ "$NO_EGRESS_FILTER" == "true" ]]; then
+    echo -e "${RED}WARNING: Egress filtering disabled -- sandbox has unrestricted internet access${NC}"
+    # Explicitly unset proxy env vars so global-agent is truly a no-op.
+    # Prevents corporate proxy leakage if user has HTTP_PROXY set on host.
+    PROXY_ENV_ARGS=(
+        -e "GLOBAL_AGENT_HTTP_PROXY="
+        -e "GLOBAL_AGENT_HTTPS_PROXY="
+    )
+else
+    ensure_proxy_network
+    ensure_proxy
+    NETWORK_ARGS=(
+        --network "$PROXY_NETWORK_NAME"
+        --sysctl net.ipv6.conf.all.disable_ipv6=1  # Defense-in-depth: block IPv6 bypass
+    )
+    PROXY_ENV_ARGS=(
+        -e "http_proxy=http://${PROXY_CONTAINER_NAME}:${PROXY_PORT}"
+        -e "https_proxy=http://${PROXY_CONTAINER_NAME}:${PROXY_PORT}"
+        -e "HTTP_PROXY=http://${PROXY_CONTAINER_NAME}:${PROXY_PORT}"
+        -e "HTTPS_PROXY=http://${PROXY_CONTAINER_NAME}:${PROXY_PORT}"
+        -e "ALL_PROXY=http://${PROXY_CONTAINER_NAME}:${PROXY_PORT}"
+        -e "all_proxy=http://${PROXY_CONTAINER_NAME}:${PROXY_PORT}"
+        -e "GLOBAL_AGENT_HTTP_PROXY=http://${PROXY_CONTAINER_NAME}:${PROXY_PORT}"
+        -e "GLOBAL_AGENT_HTTPS_PROXY=http://${PROXY_CONTAINER_NAME}:${PROXY_PORT}"
+        -e "no_proxy=localhost,127.0.0.1,${PROXY_CONTAINER_NAME}"
+        -e "NO_PROXY=localhost,127.0.0.1,${PROXY_CONTAINER_NAME}"
+    )
+    # Remove --add-host when egress filtering is active to prevent bypass via host.docker.internal
+    HOST_ARGS=()
+    echo -e "${GREEN}Egress filtering: enabled (proxy: ${PROXY_CONTAINER_NAME}:${PROXY_PORT})${NC}"
+fi
+
 # Run the container
 # --user: Run as current user so files created in /workspace have correct ownership on host
 # HOME=/home/sandbox: Matches the directory created in Dockerfile (chmod 777 so any UID can write)
@@ -440,8 +620,10 @@ exec docker run -it --rm \
     --name "$CONTAINER_NAME" \
     --hostname claude-sandbox \
     --user "$(id -u):$(id -g)" \
-    --add-host=host.docker.internal:host-gateway \
+    "${HOST_ARGS[@]}" \
+    "${NETWORK_ARGS[@]}" \
     "${ENV_ARGS[@]}" \
+    "${PROXY_ENV_ARGS[@]}" \
     "${PORT_ARGS[@]}" \
     "${CRED_ARGS[@]}" \
     -v "$(pwd):/workspace" \

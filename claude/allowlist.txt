@@ -1,0 +1,64 @@
+# === Claude API and Anthropic services ===
+# Claude Code connects to Anthropic's API for inference and tool use.
+# WebSearch and WebFetch also route through Anthropic's servers.
+# Plugin installation also routes through Anthropic infrastructure.
+.anthropic.com
+.claude.ai
+
+# === MCP Plugin Endpoints (vendor-hosted remote MCP) ===
+# These are the SSE endpoints that Claude Code plugins connect to.
+# Each is a long-lived HTTPS connection carrying tool calls and results.
+mcp.slack.com
+mcp.linear.app
+api.notion.com
+.notion.so
+
+# === GitHub ===
+# GitHub plugin and gh CLI need API access.
+# githubusercontent.com serves raw file content and avatars.
+api.github.com
+.githubusercontent.com
+github.com
+
+# === Google Workspace ===
+# Google Workspace MCP server (workspace-mcp) needs Google API access.
+# accounts.google.com is needed for OAuth token refresh.
+.googleapis.com
+accounts.google.com
+
+# === Fireflies ===
+# Fireflies plugin for meeting transcript access.
+.fireflies.ai
+
+# === context7 ===
+# context7 plugin for live documentation lookup.
+.context7.com
+
+# === OpenAI ===
+# Codex MCP server connects to OpenAI API.
+api.openai.com
+
+# === npm registry ===
+# Needed for: `npx @playwright/mcp@latest` (in MCP config),
+# `npm install` in workspace projects, yarn/pnpm installs.
+# The entrypoint also runs `claude plugin install` which may fetch npm packages.
+.npmjs.org
+.yarnpkg.com
+
+# === PyPI ===
+# Needed for: `pip install` in workspace Python projects.
+# workspace-mcp is pre-installed in the image, but users may need other packages.
+pypi.org
+files.pythonhosted.org
+
+# === Rust/Cargo registry ===
+# Needed for: `cargo build` in workspace Rust projects.
+# crates.io index and crate downloads.
+# static.rust-lang.org for rustup component downloads.
+.crates.io
+static.rust-lang.org
+
+# === Node.js ===
+# Node.js may check for updates; npm CLI may check versions.
+nodejs.org
+deb.nodesource.com
