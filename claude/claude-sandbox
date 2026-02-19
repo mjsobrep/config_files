@@ -562,9 +562,10 @@ fi
 # Build if requested or needed
 if [[ "$FORCE_BUILD" == "true" ]]; then
     build_image
-    # Also remove proxy image so it gets rebuilt with updated config/allowlist
-    docker rmi "$PROXY_IMAGE" 2>/dev/null || true
+    # Full proxy cleanup so it gets rebuilt with updated config/allowlist
     docker stop "$PROXY_CONTAINER_NAME" 2>/dev/null && docker rm "$PROXY_CONTAINER_NAME" 2>/dev/null || true
+    docker network rm "$PROXY_NETWORK_NAME" 2>/dev/null || true
+    docker rmi "$PROXY_IMAGE" 2>/dev/null || true
 else
     ensure_image
 fi
