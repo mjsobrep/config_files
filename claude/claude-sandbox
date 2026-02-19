@@ -457,7 +457,7 @@ ensure_proxy() {
     local retries=0
     local max_retries=30
     while ! docker exec "$PROXY_CONTAINER_NAME" \
-        sh -c "wget -q --spider http://localhost:$PROXY_PORT 2>/dev/null"; do
+        sh -c "echo QUIT | nc localhost $PROXY_PORT >/dev/null 2>&1"; do
         retries=$((retries + 1))
         if [[ $retries -ge $max_retries ]]; then
             echo -e "${RED}Proxy failed to start within ${max_retries}s${NC}"

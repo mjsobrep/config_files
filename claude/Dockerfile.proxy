@@ -17,9 +17,9 @@ RUN output=$(squid -k parse -f /etc/squid/squid.conf 2>&1); \
     echo "$output"; \
     if echo "$output" | grep -qi "FATAL"; then exit 1; fi
 
-# Health check: verify squid is accepting connections
+# Health check: verify squid is accepting TCP connections on its port
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
-    CMD wget -q --spider http://localhost:3128 || exit 1
+    CMD echo QUIT | nc localhost 3128 >/dev/null 2>&1 || exit 1
 
 EXPOSE 3128
 
