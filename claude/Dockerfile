@@ -32,6 +32,14 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 # Install Yarn
 RUN corepack enable && corepack prepare yarn@stable --activate
 
+# Install GitHub CLI (for reading PR comments, issues, etc.)
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+        > /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update && apt-get install -y gh \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install Rust (system-wide, accessible to all users)
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
@@ -60,6 +68,11 @@ RUN npm install -g @openai/codex @google/gemini-cli
 # MCP servers that wrap the CLIs (uses CLI's existing auth)
 RUN npm install -g codex-mcp-server gemini-mcp
 
+# Pylon MCP server for customer support platform (read-only via deny list)
+# Note: Package specifies engines >=24 but compiled JS runs fine on Node 20.
+# We use --ignore-engines to bypass the check since we only run dist/*.js.
+RUN npm install -g pylon-mcp@1.1.1 --ignore-engines
+
 # Playwright MCP for browser automation (allows Claude to control a browser)
 # Let Playwright download its own Chromium binary with --with-deps to install system libs
 # Note: Ubuntu 24.04's chromium-browser is just a Snap wrapper that doesn't work in Docker
@@ -77,8 +90,10 @@ RUN pip3 install --break-system-packages workspace-mcp==1.11.1
 # When GLOBAL_AGENT_HTTP_PROXY / GLOBAL_AGENT_HTTPS_PROXY env vars are set,
 # all Node.js HTTP/HTTPS traffic is routed through the proxy.
 # When no proxy env vars are set (--no-egress-filter), global-agent is a no-op.
+# IMPORTANT: v4.x ships TypeScript source without compiled dist/ — DO NOT UPGRADE
+# past 3.0.0 unless you verify the package includes dist/*.js files.
 # Pinned version for supply chain safety. Audit before upgrading.
-RUN npm install -g global-agent@4.1.2
+RUN npm install -g global-agent@3.0.0
 
 # Language server binaries for LSP plugins (real-time type checking on every edit)
 RUN npm install -g typescript-language-server typescript pyright
@@ -92,7 +107,7 @@ RUN mkdir -p /home/sandbox && chmod 777 /home/sandbox
 # This ensures sandbox always has correct permissions regardless of project settings
 # Note: The volume mount at runtime hides these, so claude-sandbox script also ensures
 # settings.json exists in the mounted auth directory
-# Deny list last audited: 2026-02-14. Re-audit write tools after plugin updates.
+# Deny list last audited: 2026-02-19. Re-audit write tools after plugin updates.
 RUN mkdir -p /home/sandbox/.claude && chmod 777 /home/sandbox/.claude
 COPY <<'SETTINGS' /home/sandbox/.claude/settings.json
 {
@@ -125,7 +140,24 @@ COPY <<'SETTINGS' /home/sandbox/.claude/settings.json
       "mcp__claude_ai_Notion__notion-duplicate-page",
       "mcp__claude_ai_Notion__notion-move-pages",
       "mcp__claude_ai_Notion__notion-update-data-source",
-      "mcp__claude_ai_Notion__notion-update-page"
+      "mcp__claude_ai_Notion__notion-update-page",
+      "mcp__pylon__pylon_create_account",
+      "mcp__pylon__pylon_update_account",
+      "mcp__pylon__pylon_delete_account",
+      "mcp__pylon__pylon_create_contact",
+      "mcp__pylon__pylon_update_contact",
+      "mcp__pylon__pylon_delete_contact",
+      "mcp__pylon__pylon_create_issue",
+      "mcp__pylon__pylon_update_issue",
+      "mcp__pylon__pylon_delete_issue",
+      "mcp__pylon__pylon_snooze_issue",
+      "mcp__pylon__pylon_update_issue_followers",
+      "mcp__pylon__pylon_redact_message",
+      "mcp__pylon__pylon_create_tag",
+      "mcp__pylon__pylon_update_tag",
+      "mcp__pylon__pylon_delete_tag",
+      "mcp__pylon__pylon_create_team",
+      "mcp__pylon__pylon_update_team"
     ],
     "defaultMode": "bypassPermissions"
   }
@@ -170,6 +202,10 @@ esac
 GITSCRIPT
 RUN chmod +x /usr/bin/git
 
+# Network audit script - verifies egress filtering is working correctly
+COPY network-audit.sh /usr/local/bin/network-audit
+RUN chmod +x /usr/local/bin/network-audit
+
 # Draft commit helper - for use when commits are disabled
 RUN printf '#!/bin/bash\necho "$*" > /workspace/.commit-msg\necho "Commit message saved to .commit-msg"\necho "On host run: git commit -F .commit-msg"\n' > /usr/local/bin/git-draft-commit \
     && chmod +x /usr/local/bin/git-draft-commit
@@ -179,16 +215,14 @@ RUN printf '#!/bin/bash\necho "$*" > /workspace/.commit-msg\necho "Commit messag
 # Bump PLUGIN_SETUP_VERSION to trigger re-install after adding new plugins
 COPY <<'ENTRYPOINT' /usr/local/bin/claude-entrypoint
 #!/bin/bash
-PLUGIN_SETUP_VERSION="v2"
+PLUGIN_SETUP_VERSION="v3"
 
 if [ ! -f "$HOME/.claude/.plugins-setup-$PLUGIN_SETUP_VERSION" ]; then
     echo "Installing Claude Code plugins (first run only)..."
 
-    # External service integrations (official only)
-    claude plugin install github@claude-plugins-official --scope user 2>&1 || true
+    # External service integrations (OAuth-based, auth via: claude-sandbox --auth)
     claude plugin install slack@claude-plugins-official --scope user 2>&1 || true
     claude plugin install linear@claude-plugins-official --scope user 2>&1 || true
-    claude plugin install Notion@claude-plugins-official --scope user 2>&1 || true
 
     # Language server integration (real-time type errors on every edit)
     claude plugin install typescript-lsp@claude-plugins-official --scope user 2>&1 || true
@@ -221,7 +255,8 @@ RUN curl -fsSL https://claude.ai/install.sh | bash \
 
 # Proxy support: NODE_PATH lets --require find globally installed global-agent.
 # Set after all build-time npm installs to avoid breaking them during the build.
-ENV NODE_PATH=/usr/local/lib/node_modules
+# Path must match `npm root -g` output (Ubuntu 24.04 / Node 20 = /usr/lib/node_modules).
+ENV NODE_PATH=/usr/lib/node_modules
 ENV NODE_OPTIONS="--require global-agent/bootstrap"
 
 ENTRYPOINT ["claude-entrypoint"]

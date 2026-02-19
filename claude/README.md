@@ -25,6 +25,7 @@ claude-sandbox/
 ├── Dockerfile.proxy    # Container definition (egress filter proxy)
 ├── squid.conf          # Squid proxy configuration
 ├── allowlist.txt       # Domain allowlist for egress filtering
+├── network-audit.sh    # Network egress filter verification script
 └── CLAUDE.md           # Default instructions for Claude in sandbox
 ```
 
@@ -69,7 +70,7 @@ claude-sandbox --cleanup
 
 ## First Run
 
-On first launch, Claude will prompt you to authenticate in your browser. Credentials are stored in a Docker volume (`claude-auth`) and persist across sessions.
+On first launch, Claude will prompt you to authenticate in your browser. Credentials are stored in `~/.claude-sandbox-auth` and persist across sessions.
 
 ## What's Installed
 
@@ -96,12 +97,13 @@ On first launch, the sandbox installs official plugins from the [Anthropic marke
 
 All external service integrations are read-only. Claude can search and read but cannot create, modify, or delete data.
 
-| Plugin | Service | Auth | Enforcement |
-|--------|---------|------|-------------|
-| `github` | GitHub (PRs, issues, code search) | Read-only fine-grained PAT | API-layer (token scopes) |
-| `slack` | Slack (messages, channels, search) | OAuth | Deny list (write tools blocked) |
-| `linear` | Linear (issues, projects) | OAuth | Deny list (write tools blocked) |
-| `Notion` | Notion (pages, databases, docs) | OAuth | Deny list (write tools blocked) |
+| Integration | Service | Auth | Enforcement |
+|-------------|---------|------|-------------|
+| `gh` CLI | GitHub (PRs, issues, code search) | Read-only fine-grained PAT | API-layer (token scopes) |
+| `slack` plugin | Slack (messages, channels, search) | OAuth | Deny list (4 write tools blocked) |
+| `linear` plugin | Linear (issues, projects) | OAuth | Deny list (16 write tools blocked) |
+| `Notion` plugin | Notion (pages, databases, docs) | OAuth | Deny list (7 write tools blocked) |
+| `fireflies` plugin | Fireflies (meeting transcripts) | OAuth | Read-only (no write tools) |
 
 **GitHub setup** -- a read-only fine-grained PAT is **required** (not optional):
 1. Go to [GitHub Settings > Fine-grained tokens](https://github.com/settings/personal-access-tokens/new)
@@ -115,7 +117,7 @@ All external service integrations are read-only. Claude can search and read but 
    ```
    Note: The sandbox reads `CLAUDE_SANDBOX_GITHUB_PAT` (not `GITHUB_PERSONAL_ACCESS_TOKEN`) to avoid accidentally passing a broad-access token from other tools.
 
-For Slack, Linear, and Notion: just use them -- the OAuth flow happens automatically on first use inside the sandbox. Write operations are blocked by the deny list in `settings.json`.
+For Slack, Linear, and Notion: run `claude-sandbox --auth` first to complete the OAuth flow on your host (Docker can't open a browser). After initial auth, tokens persist and work in all future sandbox sessions. Write operations are blocked by the deny list in `settings.json`.
 
 ### Code Intelligence (LSP)
 
@@ -146,8 +148,17 @@ These remain as MCP server configs (no official plugin available):
 | Google Gemini | `gemini-mcp` | `gemini auth login` on host | N/A |
 | Playwright | `@playwright/mcp` | None (sandbox-specific headless config) | N/A |
 | Google Workspace | `workspace-mcp` | Google OAuth (read-only scopes) | `--read-only` flag |
+| Pylon | `pylon-mcp` | API token | Deny list (write tools blocked) |
 
 Codex/Gemini credentials (`~/.codex/`, `~/.gemini/`) are mounted read-only.
+
+**Pylon setup** (customer support platform, read-only):
+1. Get your API token from your Pylon account settings
+2. Add to `~/.zshrc`:
+   ```bash
+   export CLAUDE_SANDBOX_PYLON_API_TOKEN="your-pylon-api-token"
+   ```
+3. Write operations are blocked by the deny list (17 write tools blocked)
 
 ## Customizing
 
@@ -181,11 +192,7 @@ rm -rf ~/.claude-sandbox-auth
 
 **Permission denied on project files:**
 
-The container runs as uid 1000. If your Mac user has a different uid, edit the `docker run` command in `claude-sandbox`:
-
-```bash
---user $(id -u):$(id -g)
-```
+The container runs as your current user (via `--user $(id -u):$(id -g)`). If files inside the container have wrong ownership, ensure your host uid matches the container uid.
 
 **Container can't access network:**
 
@@ -243,13 +250,14 @@ All outbound network traffic from the sandbox is filtered through a squid proxy 
 - MCP plugin endpoints (`mcp.slack.com`, `mcp.linear.app`, `api.notion.com`)
 - GitHub (`api.github.com`, `github.com`)
 - Google Workspace APIs (`.googleapis.com`, `accounts.google.com`)
+- Pylon (`api.usepylon.com`)
 - Package registries (`registry.npmjs.org`, `pypi.org`, `crates.io`)
 
 **Node.js proxy support:** The `global-agent` npm package is pre-installed and loaded via `NODE_OPTIONS`. This patches Node.js `http`/`https` to respect proxy environment variables, ensuring all Node.js processes (Claude Code, MCP servers, user scripts) route through the proxy. Note: `global-agent` is a usability feature, not the security boundary. The Docker `--internal` network is the real enforcement -- even without `global-agent`, the sandbox cannot reach the internet.
 
 **Playwright browser isolation:** When egress filtering is active, the Chromium browser launched by Playwright MCP cannot access the internet. Playwright is primarily useful for testing local dev servers (`localhost`) in this mode. For web browsing, use the WebFetch tool (which routes through the Anthropic API) or disable egress filtering.
 
-**Trust boundary:** Every domain on the allowlist can see all HTTPS traffic sent to it (they terminate TLS). For first-party and major-vendor domains (Anthropic, Google, GitHub, Slack, Linear, Notion) this is expected. Third-party domains (context7.com, fireflies.ai) have a weaker trust boundary. If this is a concern, remove them from `allowlist.txt`.
+**Trust boundary:** Every domain on the allowlist can see all HTTPS traffic sent to it (they terminate TLS). For first-party and major-vendor domains (Anthropic, Google, GitHub, Slack, Linear, Notion, Pylon) this is expected. Third-party domains (context7.com, fireflies.ai) have a weaker trust boundary. If this is a concern, remove them from `allowlist.txt`.
 
 ### Adding Custom Domains
 
@@ -314,6 +322,7 @@ This setup relies on Docker's container isolation. On macOS, Docker Desktop runs
 - GitHub PAT via env var (read-only fine-grained PAT, from `CLAUDE_SANDBOX_GITHUB_PAT`)
 - Google OAuth credentials via env var (read-only scopes, from `CLAUDE_SANDBOX_GOOGLE_*`)
 - Google Workspace token cache (read-write, for OAuth token persistence)
+- Pylon API token via env var (write tools blocked by deny list, from `CLAUDE_SANDBOX_PYLON_API_TOKEN`)
 
 For stronger isolation (e.g., if your project needs Docker-in-Docker), consider running inside a Lima VM.
 
@@ -321,13 +330,13 @@ For stronger isolation (e.g., if your project needs Docker-in-Docker), consider 
 
 External service integrations use defense-in-depth:
 
-1. **Claude Code deny list**: Write tool names are blocked in `settings.json` `permissions.deny`. Claude cannot call these tools even though plugins expose them. (27 tools blocked across Slack, Linear, and Notion.)
+1. **Claude Code deny list**: Write tool names are blocked in `settings.json` `permissions.deny`. Claude cannot call these tools even though plugins expose them. (44 tools blocked across Slack, Linear, Notion, and Pylon.)
 2. **API-layer restrictions**: GitHub uses a read-only fine-grained PAT. Google Workspace uses `--read-only` mode which requests only `*.readonly` OAuth scopes.
 
 To apply read-only enforcement to an existing sandbox:
 1. Rebuild: `claude-sandbox --build`
-2. Delete the plugin setup marker: `rm ~/.claude-sandbox-auth/.plugins-setup-v2`
-3. Restart -- plugins will re-install with the fixed Notion name and deny list will be merged
+2. Delete the plugin setup marker: `rm ~/.claude-sandbox-auth/.plugins-setup-v3`
+3. Restart -- plugins will re-install and deny list will be merged
 
 ### Google Workspace Setup
 

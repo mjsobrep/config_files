@@ -32,12 +32,16 @@ usage() {
     echo "  -s, --shell       Start a bash shell instead of Claude"
     echo "  -n, --no-commit   Block git commits (default: commits allowed, push blocked)"
     echo "  -p, --port PORT   Expose a port (can be used multiple times)"
+    echo "  -a, --auth        Run Claude on host (not Docker) to authenticate plugins"
+    echo "  --network-audit     Test egress filtering (verify allowed/blocked domains)"
     echo "  --no-egress-filter  Disable network egress filtering (for debugging)"
     echo "  --cleanup           Stop proxy container and remove internal network"
     echo "  -h, --help        Show this help message"
     echo ""
     echo "Examples:"
     echo "  claude-sandbox                    # Start Claude in current directory"
+    echo "  claude-sandbox --auth             # Authenticate plugins (run on host)"
+    echo "  claude-sandbox --network-audit    # Verify network egress filtering"
     echo "  claude-sandbox --shell            # Get a shell in the sandbox"
     echo "  claude-sandbox -b                 # Rebuild image and start Claude"
     echo "  claude-sandbox -n                 # Block commits, require host review"
@@ -120,7 +124,7 @@ ensure_auth_dir() {
     # Ensure settings.json has bypassPermissions mode and read-only deny list
     # Claude Code may create/modify this file when you approve commands,
     # so we need to update it in place rather than overwrite it
-    # Deny list last audited: 2026-02-14. Re-audit write tools after plugin updates.
+    # Deny list last audited: 2026-02-19. Re-audit write tools after plugin updates.
     local settings_file="$AUTH_DIR/settings.json"
     if [[ ! -f "$settings_file" ]]; then
         echo -e "${YELLOW}Creating settings with bypass permissions and read-only deny list...${NC}"
@@ -155,7 +159,24 @@ ensure_auth_dir() {
       "mcp__claude_ai_Notion__notion-duplicate-page",
       "mcp__claude_ai_Notion__notion-move-pages",
       "mcp__claude_ai_Notion__notion-update-data-source",
-      "mcp__claude_ai_Notion__notion-update-page"
+      "mcp__claude_ai_Notion__notion-update-page",
+      "mcp__pylon__pylon_create_account",
+      "mcp__pylon__pylon_update_account",
+      "mcp__pylon__pylon_delete_account",
+      "mcp__pylon__pylon_create_contact",
+      "mcp__pylon__pylon_update_contact",
+      "mcp__pylon__pylon_delete_contact",
+      "mcp__pylon__pylon_create_issue",
+      "mcp__pylon__pylon_update_issue",
+      "mcp__pylon__pylon_delete_issue",
+      "mcp__pylon__pylon_snooze_issue",
+      "mcp__pylon__pylon_update_issue_followers",
+      "mcp__pylon__pylon_redact_message",
+      "mcp__pylon__pylon_create_tag",
+      "mcp__pylon__pylon_update_tag",
+      "mcp__pylon__pylon_delete_tag",
+      "mcp__pylon__pylon_create_team",
+      "mcp__pylon__pylon_update_team"
     ],
     "defaultMode": "bypassPermissions"
   }
@@ -167,8 +188,12 @@ SETTINGS
         python3 -c "
 import json, sys
 settings_file = sys.argv[1]
-with open(settings_file, 'r') as f:
-    settings = json.load(f)
+try:
+    with open(settings_file, 'r') as f:
+        settings = json.load(f)
+except (json.JSONDecodeError, ValueError):
+    # Corrupted file -- start fresh rather than crashing
+    settings = {}
 if 'permissions' not in settings:
     settings['permissions'] = {}
 settings['permissions']['defaultMode'] = 'bypassPermissions'
@@ -202,10 +227,39 @@ required_deny = [
     'mcp__claude_ai_Notion__notion-move-pages',
     'mcp__claude_ai_Notion__notion-update-data-source',
     'mcp__claude_ai_Notion__notion-update-page',
+    'mcp__pylon__pylon_create_account',
+    'mcp__pylon__pylon_update_account',
+    'mcp__pylon__pylon_delete_account',
+    'mcp__pylon__pylon_create_contact',
+    'mcp__pylon__pylon_update_contact',
+    'mcp__pylon__pylon_delete_contact',
+    'mcp__pylon__pylon_create_issue',
+    'mcp__pylon__pylon_update_issue',
+    'mcp__pylon__pylon_delete_issue',
+    'mcp__pylon__pylon_snooze_issue',
+    'mcp__pylon__pylon_update_issue_followers',
+    'mcp__pylon__pylon_redact_message',
+    'mcp__pylon__pylon_create_tag',
+    'mcp__pylon__pylon_update_tag',
+    'mcp__pylon__pylon_delete_tag',
+    'mcp__pylon__pylon_create_team',
+    'mcp__pylon__pylon_update_team',
 ]
 existing_deny = set(settings['permissions'].get('deny', []))
 merged_deny = sorted(set(required_deny) | existing_deny)
 settings['permissions']['deny'] = merged_deny
+
+# Remove plugins that are no longer used
+removed_plugins = [
+    'atlassian@claude-plugins-official',
+    'figma@claude-plugins-official',
+    'sentry@claude-plugins-official',
+    'github@claude-plugins-official',
+]
+if 'enabledPlugins' in settings:
+    for p in removed_plugins:
+        settings['enabledPlugins'].pop(p, None)
+
 with open(settings_file, 'w') as f:
     json.dump(settings, f, indent=2)
 " "$settings_file"
@@ -247,6 +301,12 @@ required_servers = {
         'command': 'workspace-mcp',
         'args': ['--read-only', '--tools', 'gmail', 'drive', 'calendar', 'docs'],
         'env': {}
+    },
+    # Pylon customer support (read-only: write tools blocked by deny list)
+    'pylon': {
+        'command': 'pylon-mcp',
+        'args': [],
+        'env': {}
     }
 }
 
@@ -260,18 +320,24 @@ except (FileNotFoundError, json.JSONDecodeError):
 if 'mcpServers' not in config:
     config['mcpServers'] = {}
 
-# Remove stale entries (replaced by newer integrations)
-stale_servers = ['gdrive']
+# Remove stale entries (replaced by plugins or no longer used)
+# Slack, Linear, Notion: handled by Claude.ai plugins, not local MCP servers.
+#   Local MCP versions used third-party packages whose tools could bypass the
+#   deny list (deny list only blocks mcp__claude_ai_* prefixed tool names).
+# GitHub: github-mcp-server binary was never installed; gh CLI is used instead.
+# google-calendar, gmail: replaced by google-workspace with --read-only flag.
+#   These used third-party packages with no read-only enforcement.
+stale_servers = ['gdrive', 'slack', 'linear', 'notion', 'github', 'google-calendar', 'gmail']
 changed = False
 for name in stale_servers:
     if name in config['mcpServers']:
         del config['mcpServers'][name]
         changed = True
 
-# Add missing servers
+# Add or update required servers (overwrite to fix drifted configs)
 added = []
 for name, server in required_servers.items():
-    if name not in config['mcpServers']:
+    if config['mcpServers'].get(name) != server:
         config['mcpServers'][name] = server
         added.append(name)
 
@@ -416,6 +482,8 @@ START_SHELL=false
 NO_COMMIT=false
 NO_EGRESS_FILTER=false
 DO_CLEANUP=false
+AUTH_MODE=false
+NETWORK_AUDIT=false
 EXPOSED_PORTS=()
 CLAUDE_ARGS=()
 
@@ -440,6 +508,14 @@ while [[ $# -gt 0 ]]; do
             fi
             EXPOSED_PORTS+=("$2")
             shift 2
+            ;;
+        -a|--auth)
+            AUTH_MODE=true
+            shift
+            ;;
+        --network-audit)
+            NETWORK_AUDIT=true
+            shift
             ;;
         --no-egress-filter)
             NO_EGRESS_FILTER=true
@@ -466,6 +542,23 @@ if [[ "$DO_CLEANUP" == "true" ]]; then
     exit 0
 fi
 
+# Handle auth mode: run Claude on the host (not Docker) to complete OAuth flows.
+# OAuth-based plugins (Slack, Linear) redirect to localhost for callbacks. This
+# doesn't work inside Docker because the browser is on the host. Running Claude
+# directly on the host with the sandbox auth dir lets OAuth callbacks succeed.
+# Tokens are stored in AUTH_DIR which is later mounted into Docker.
+if [[ "$AUTH_MODE" == "true" ]]; then
+    ensure_auth_dir
+    echo -e "${GREEN}Starting Claude on host for plugin authentication...${NC}"
+    echo -e "${YELLOW}OAuth callbacks will work because Claude is running locally.${NC}"
+    echo -e "${YELLOW}Auth dir: ${AUTH_DIR}${NC}"
+    echo ""
+    echo "Authenticate your plugins (e.g. Slack, Linear), then exit with /exit."
+    echo "Next time you run claude-sandbox, the tokens will be available in Docker."
+    echo ""
+    CLAUDE_CONFIG_DIR="$AUTH_DIR" exec claude "${CLAUDE_ARGS[@]}"
+fi
+
 # Build if requested or needed
 if [[ "$FORCE_BUILD" == "true" ]]; then
     build_image
@@ -479,7 +572,9 @@ fi
 ensure_auth_dir
 
 # Determine command to run
-if [[ "$START_SHELL" == "true" ]]; then
+if [[ "$NETWORK_AUDIT" == "true" ]]; then
+    CMD="network-audit"
+elif [[ "$START_SHELL" == "true" ]]; then
     CMD="bash"
 else
     CMD="claude"
@@ -533,13 +628,15 @@ fi
 # Service credentials use CLAUDE_SANDBOX_* env vars to avoid accidentally passing
 # broad-access tokens from other tools. The sandbox maps them to what plugins/servers expect.
 #
-# GitHub: CLAUDE_SANDBOX_GITHUB_PAT -> GITHUB_PERSONAL_ACCESS_TOKEN (plugin expects this)
+# GitHub: CLAUDE_SANDBOX_GITHUB_PAT -> GH_TOKEN (gh CLI)
+#         Must be a fine-grained token with read-only repository permissions.
 # Google: CLAUDE_SANDBOX_GOOGLE_CLIENT_ID -> GOOGLE_OAUTH_CLIENT_ID
 #         CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET -> GOOGLE_OAUTH_CLIENT_SECRET
-#
-# IMPORTANT: GitHub PAT must be a fine-grained token with read-only repository permissions.
+#         OAuth consent screen must only have *.readonly scopes.
+# Pylon:  CLAUDE_SANDBOX_PYLON_API_TOKEN -> PYLON_API_TOKEN
+#         Write operations blocked by deny list in settings.json.
 if [[ -n "${CLAUDE_SANDBOX_GITHUB_PAT:-}" ]]; then
-    ENV_ARGS+=(-e "GITHUB_PERSONAL_ACCESS_TOKEN=$CLAUDE_SANDBOX_GITHUB_PAT")
+    ENV_ARGS+=(-e "GH_TOKEN=$CLAUDE_SANDBOX_GITHUB_PAT")
     echo -e "${GREEN}GitHub PAT: available (from CLAUDE_SANDBOX_GITHUB_PAT)${NC}"
 elif [[ -n "${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ]]; then
     echo -e "${YELLOW}Warning: GITHUB_PERSONAL_ACCESS_TOKEN is set but not used.${NC}"
@@ -549,6 +646,11 @@ fi
 if [[ -n "${CLAUDE_SANDBOX_GOOGLE_CLIENT_ID:-}" && -n "${CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET:-}" ]]; then
     ENV_ARGS+=(-e "GOOGLE_OAUTH_CLIENT_ID=$CLAUDE_SANDBOX_GOOGLE_CLIENT_ID" -e "GOOGLE_OAUTH_CLIENT_SECRET=$CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET")
     echo -e "${GREEN}Google Workspace OAuth: available (from CLAUDE_SANDBOX_GOOGLE_*)${NC}"
+fi
+
+if [[ -n "${CLAUDE_SANDBOX_PYLON_API_TOKEN:-}" ]]; then
+    ENV_ARGS+=(-e "PYLON_API_TOKEN=$CLAUDE_SANDBOX_PYLON_API_TOKEN")
+    echo -e "${GREEN}Pylon API: available (from CLAUDE_SANDBOX_PYLON_API_TOKEN)${NC}"
 fi
 
 # Build port mapping args
@@ -632,4 +734,4 @@ exec docker run -it --rm \
     --memory=8g \
     --cpus=4 \
     "$IMAGE_NAME" \
-    $CMD "${CLAUDE_ARGS[@]}"
+    "$CMD" "${CLAUDE_ARGS[@]}"

@@ -68,7 +68,7 @@ At the start of every new major project:
 
 This sandbox uses network egress filtering. All outbound traffic is routed through a proxy that only allows connections to an explicit domain allowlist. You cannot reach arbitrary internet hosts.
 
-**What works**: All configured service integrations (Anthropic API, GitHub, Slack, Linear, Notion, Google Workspace, npm/PyPI/crates.io registries) are allowlisted.
+**What works**: All configured service integrations (Anthropic API, GitHub, Slack, Linear, Notion, Pylon, Google Workspace, Fireflies, npm/PyPI/crates.io registries) are allowlisted.
 
 **What is blocked**: Any connection to a domain not on the allowlist, including raw TCP/UDP, DNS resolution of external hosts, and ICMP.
 
@@ -78,8 +78,8 @@ If you need to access a domain that is blocked, inform the user. They can add it
 
 All external service integrations are **read-only**. You can search, read, and reference information but cannot create, modify, or delete data in any external service.
 
-**Enforced via deny list** (Slack, Linear, Notion):
-- Write tool calls are blocked in permissions settings
+**Enforced via deny list** (Slack, Linear, Notion, Pylon):
+- Write tool calls are blocked in permissions settings (44 tools total)
 - Attempting to call a write tool will be denied
 
 **Enforced via API** (GitHub, Google Workspace):

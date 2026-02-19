@@ -14,9 +14,11 @@ api.notion.com
 .notion.so
 
 # === GitHub ===
-# GitHub plugin and gh CLI need API access.
+# gh CLI needs API access for PR/issue reads (uses GH_TOKEN env var).
+# cli.github.com hosts the gh CLI apt repository.
 # githubusercontent.com serves raw file content and avatars.
 api.github.com
+cli.github.com
 .githubusercontent.com
 github.com
 
@@ -25,6 +27,10 @@ github.com
 # accounts.google.com is needed for OAuth token refresh.
 .googleapis.com
 accounts.google.com
+
+# === Pylon ===
+# Pylon MCP server for customer support platform (read-only via deny list).
+api.usepylon.com
 
 # === Fireflies ===
 # Fireflies plugin for meeting transcript access.
