@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch",
+      "Task",
+      "TodoRead",
+      "TodoWrite",
+      "NotebookEdit"
+    ],
+    "deny": [],
+    "defaultMode": "bypassPermissions"
+  },
+  "attribution": {
+    "commit": "\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+    "pr": "\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+  }
+}

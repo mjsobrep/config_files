@@ -32,4 +32,8 @@ tags
 
 [._]*.un~
 
-
+# Claude sandbox build artifacts
+build_log
+claude/build_log
+claude/.claude/
+docker-sandbox-proxy.log

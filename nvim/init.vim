@@ -22,7 +22,6 @@ Plug 'tpope/vim-fugitive'
 Plug 'junegunn/gv.vim' " for viewing commit tree, :GV to view :GV! for commits on this file
 
 
-Plug 'w0rp/ale' " auto lints while typing. TODO: explore this more, lots of cool stuff
 Plug 'tpope/vim-surround' " allows easy management of brackets, braces, etc.
 " requires some learning...
 Plug 'vim-airline/vim-airline'
@@ -45,16 +44,8 @@ Plug 'heavenshell/vim-pydocstring', { 'do': 'make install' }
 Plug 'rhysd/vim-grammarous' " need to call to hit the server manually
 Plug 'davidbeckingsale/writegood.vim'
 
-Plug 'pangloss/vim-javascript'
-Plug 'MaxMEllon/vim-jsx-pretty'
-
-Plug 'leafgarland/typescript-vim'
-Plug 'HerringtonDarkholme/yats.vim' " yet another typescript plugin
-
 " Maintaining tags files, probably only want one of these:
 Plug 'ludovicchabant/vim-gutentags'
-
-Plug 'ekalinin/Dockerfile.vim'
 
 Plug 'jceb/vim-orgmode'
 
@@ -68,10 +59,14 @@ Plug 'jiangmiao/auto-pairs'
 " figure out what key combos are available:
 Plug 'liuchengxu/vim-which-key'
 
-Plug 'valloric/youcompleteme'
-
-" better python syntax highlighting
-Plug 'numirias/semshi', { 'do': ':UpdateRemotePlugins' }
+Plug 'neovim/nvim-lspconfig'
+Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'saadparwaiz1/cmp_luasnip'
+Plug 'L3MON4D3/LuaSnip'
+Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
 
 call plug#end()
 
@@ -139,7 +134,9 @@ let NERDTreeMinimalUI = 1
 
 """""""""" Tagbar settings """""""""""""""
 nmap <F8> :TagbarToggle<CR>
-let g:tagbar_ctags_bin='/usr/local/bin/ctags'
+if executable('ctags')
+    let g:tagbar_ctags_bin = substitute(system('command -v ctags'), '\n', '', 'g')
+endif
 
 """""""""" gutentags settings """"""""""""
 " Keep the tag files out of the projects:
@@ -225,6 +222,36 @@ let g:which_key_map.s = {
                 \ }
             \ }
 
+" LSP keymaps
+nnoremap <silent> <leader>lh <cmd>lua vim.lsp.buf.hover()<CR>
+nnoremap <silent> <leader>ld <cmd>lua vim.diagnostic.open_float()<CR>
+nnoremap <silent> <leader>ln <cmd>lua vim.diagnostic.goto_next()<CR>
+nnoremap <silent> <leader>lp <cmd>lua vim.diagnostic.goto_prev()<CR>
+nnoremap <silent> <leader>lr <cmd>lua vim.lsp.buf.rename()<CR>
+nnoremap <silent> <leader>la <cmd>lua vim.lsp.buf.code_action()<CR>
+nnoremap <silent> <leader>lf <cmd>lua vim.lsp.buf.format({ async = true })<CR>
+nnoremap <silent> <leader>lg <cmd>lua vim.lsp.buf.definition()<CR>
+nnoremap <silent> <leader>ls <cmd>lua vim.lsp.buf.references()<CR>
+
+let g:which_key_map.l = {
+            \ 'name': '+ LSP',
+            \ 'h': 'Hover',
+            \ 'd': 'Line diagnostics',
+            \ 'n': 'Next diagnostic',
+            \ 'p': 'Prev diagnostic',
+            \ 'r': 'Rename symbol',
+            \ 'a': 'Code action',
+            \ 'f': 'Format buffer',
+            \ 'g': 'Go to definition',
+            \ 's': 'Search references',
+            \ }
+
+""" Format on save via LSP """
+augroup LspFormatOnSave
+    autocmd!
+    autocmd BufWritePre * lua vim.lsp.buf.format({ async = false, timeout_ms = 2000 })
+augroup END
+
 "let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 "Make AG only search contents not names (https://github.com/junegunn/fzf.vim/issues/346):
 "command! -bang -nargs=* Ag call fzf#vim#ag(<q-args>, fzf#vim#with_preview({'options': '--delimiter : --nth 4..'}), <bang>0)
@@ -255,7 +282,11 @@ autocmd FileType gitcommit set bufhidden=delete
 let g:vimtex_compiler_progname = 'nvr'
 "let g:vimtex_latexmk_callback=1 " needed for zathura_alternative
 "let g:vimtex_view_use_temp_files = 1
-let g:vimtex_view_method = 'zathura'
+if has('mac')
+    let g:vimtex_view_method = 'skim'
+else
+    let g:vimtex_view_method = 'zathura'
+endif
 let g:tex_flavor = 'latex'
 
 "let g:vimtex_compiler_latexmk = {
@@ -313,86 +344,11 @@ endfunction
 
 command! ToggleSpelling call FlipSpelling()
 
-""""" Linting with ale """"'
-let g:ale_fix_on_save = 1
-"let g:ale_completion_enabled = 1
-"let g:ale_completion_autoimport = 1
-"set omnifunc=ale#completion#OmniFunc
-let g:ale_linters_explicit=1
-let g:ale_fixers = {
-            \ '*': ['remove_trailing_lines', 'trim_whitespace'],
-            \ 'python': ['autopep8'],
-            \ 'html': ['prettier'],
-            \ 'javascript': ['prettier'],
-            \ 'typescript': ['prettier'],
-            \ 'typescriptreact': ['prettier'],
-            \ 'cpp':['clang-format'],
-            \ 'tex':['latexindent'],
-            \ 'markdown':['prettier','remark-lint'],
-            \ 'yaml':['prettier','yamlfix'],
-            \ 'r' :['styler'],
-            \ 'rmd' :['styler'],
-            \ 'xml' :['xmllint'],
-            \ 'json' :['jq']
-            \}
-
-" This will make prettier always wrap text:
-let b:ale_javascript_prettier_options = '--prose-wrap always'
-"Prettier is needed for js/tsx: https://prettier.io/docs/en/install.html
-"I was using Alex in a few places to find insensitive words, but it was annoying as hell
-let g:ale_linters = {
-            \'python':['flake','pylint'],
-            \'tex':['chktex','proselint','lacheck', 'writegood'],
-            \'markdown':['proselint', 'writegood'],
-            \'javascript': ['eslint'],
-            \'typescript': ['eslint','tsserver'],
-            \ 'typescriptreact': ['eslint'],
-            \ 'yaml':['yamllint'],
-            \ 'r':['lintr'],
-            \ 'rmd':['lintr'],
-            \ 'xml' :['xmllint'],
-            \ 'cpp' :['gcc','clang'],
-            \ 'bash' :['shellcheck'],
-            \ 'sh' :['shellcheck'],
-            \ 'zsh' :['shellcheck'],
-            \ 'json' :['jq']
-            \}
-
-let g:ale_linter_aliases = {
-            \'jsx': 'javascript',
-            \'tsx': 'typescript',
-            \'arduino':'cpp',
-            \'plaintex':'tex',
-            \'latex':'tex',
-            \'rmarkdown': 'r',
-            \}
-
-let g:ale_python_pylint_options = "--init-hook='import sys; sys.path.append(\".\")'"
-
-nmap <silent> ]a :ALENext<cr>
-nmap <silent> [a :ALEPrevious<cr>
-
-command! ALEToggleFixer execute "let g:ale_fix_on_save = get(g:, 'ale_fix_on_save', 0) ? 0 : 1"
-
-nmap <silent> <Leader>h <Plug>(ale_hover)
-
-let g:airline#extensions#ale#enabled = 1
-
-let g:ale_echo_msg_format = '[%linter%] %s'
-"To fix problems with over eagerly inserting text:
-"set completeopt=menu,menuone,preview,noselect,noinsert
-"let g:ale_set_ballons = 1 should allow info to pop up when hovering
-let g:ale_close_preview_on_insert = 0  "closes the ale preview when in insert mode
-let g:ale_cursor_detail = 0 "shows the error in a window when hovering
-                            "don't want this. prefer error in airline
-                            "status
-
-
 """"" Py Doc Sting """""
 nmap <silent> <Leader>d <Plug>(pydocstring)
 "let g:pydocstring_templates_dir = '~/Documents/git/config_files/nvim/pydoc-templates'
 let g:pydocstring_formatter = 'google'
-let g:pydocstring_doq_path = '/home/mjsobrep/.local/bin/doq'
+let g:pydocstring_doq_path = expand('$HOME/.local/bin/doq')
 
 """"" Copy and past with system clipboard """"
 set clipboard=unnamedplus
@@ -431,13 +387,112 @@ nmap [h <Plug>(GitGutterPrevHunk)
 
 """" NVIM-R """"
 let R_in_buffer = 0
-let R_source = '/home/mjsobrep/.local/share/nvim/plugged/Nvim-R/R/tmux_split.vim'
+let R_source = expand('$HOME/.local/share/nvim/plugged/Nvim-R/R/tmux_split.vim')
 let R_assign = 0
 
 
 """ keep lines above and below """
 :set scrolloff=7
 
-""" You Complet Me (YCM) """
-let g:ycm_autoclose_preview_window_after_insertion = 1
-:set pumblend=25
+""" Completion UI """
+set completeopt=menu,menuone,noselect
+set pumblend=25
+
+lua << EOF
+local cmp_ok, cmp = pcall(require, 'cmp')
+if not cmp_ok then
+  return
+end
+
+local luasnip = require('luasnip')
+
+cmp.setup({
+  snippet = {
+    expand = function(args)
+      luasnip.lsp_expand(args.body)
+    end,
+  },
+  mapping = cmp.mapping.preset.insert({
+    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<C-e>'] = cmp.mapping.abort(),
+    ['<CR>'] = cmp.mapping.confirm({ select = true }),
+    ['<Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      elseif luasnip.expand_or_jumpable() then
+        luasnip.expand_or_jump()
+      else
+        fallback()
+      end
+    end, { 'i', 's' }),
+    ['<S-Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item()
+      elseif luasnip.jumpable(-1) then
+        luasnip.jump(-1)
+      else
+        fallback()
+      end
+    end, { 'i', 's' }),
+  }),
+  sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    { name = 'path' },
+    { name = 'buffer' },
+  }),
+})
+EOF
+
+""" LSP setup """
+lua << EOF
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+local cmp_ok, cmp_lsp = pcall(require, 'cmp_nvim_lsp')
+if cmp_ok then
+  capabilities = cmp_lsp.default_capabilities(capabilities)
+end
+
+local servers = {
+  'pyright',
+  'ts_ls',
+  'bashls',
+  'clangd',
+  'dockerls',
+  'jsonls',
+  'yamlls',
+  'marksman',   -- markdown
+  'ltex',       -- latex/markdown prose diagnostics
+}
+
+for _, server in ipairs(servers) do
+  vim.lsp.config(server, { capabilities = capabilities })
+  vim.lsp.enable(server)
+end
+EOF
+
+""" Treesitter """
+lua << EOF
+local ok, configs = pcall(require, 'nvim-treesitter.configs')
+if not ok then
+  return
+end
+
+configs.setup({
+  ensure_installed = {
+    'lua',
+    'python',
+    'typescript',
+    'tsx',
+    'javascript',
+    'bash',
+    'json',
+    'yaml',
+    'dockerfile',
+    'cpp',
+    'vim',
+    'vimdoc',
+  },
+  highlight = { enable = true },
+  incremental_selection = { enable = true },
+  indent = { enable = true },
+})
+EOF

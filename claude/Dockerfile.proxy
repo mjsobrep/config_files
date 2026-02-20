@@ -1,0 +1,29 @@
+FROM alpine:3.20
+
+RUN apk add --no-cache squid
+
+# Create directories squid needs
+RUN mkdir -p /var/cache/squid /var/log/squid /var/run/squid \
+    && chown -R squid:squid /var/cache/squid /var/log/squid /var/run/squid
+
+# Copy config files
+COPY squid.conf /etc/squid/squid.conf
+COPY allowlist.txt /etc/squid/allowlist.txt
+
+# Validate config at build time (catches syntax errors)
+# squid 6.x exits non-zero on warnings (e.g. "Requiring client certificates"),
+# so we check for FATAL messages rather than relying on exit code.
+RUN output=$(squid -k parse -f /etc/squid/squid.conf 2>&1); \
+    echo "$output"; \
+    if echo "$output" | grep -qi "FATAL"; then exit 1; fi
+
+# Health check: verify squid is accepting TCP connections on its port
+HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
+    CMD echo QUIT | nc localhost 3128 >/dev/null 2>&1 || exit 1
+
+EXPOSE 3128
+
+# Run as squid user for security (not root)
+USER squid
+
+CMD ["squid", "-N", "-f", "/etc/squid/squid.conf"]

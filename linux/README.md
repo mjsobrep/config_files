@@ -8,7 +8,14 @@ sudo apt-get install fasd
 
 
 ## remapping keyboard on linux
-This is all coming from: https://wiki.archlinux.org/index.php/X_keyboard_extension
+
+### on Wayland
+
+Use keyd - there is a config file in the keyboards folder
+
+### on X11
+
+This is all coming from: https://wiki.archlinux.org/index.php/X\_keyboard\_extension
 
 There is a list of available keysyms that seem to work here: http://docs.ev3dev.org/projects/grx/en/ev3dev-stretch/c-api/input_keysyms.html
 
