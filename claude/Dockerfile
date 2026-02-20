@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -y \
     tmux \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 20.x (LTS)
+# Install Node.js 20.x (system Node for global packages and MCP servers).
+# Additional versions (20, 22, 24) are available via nvm — see below.
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
@@ -98,6 +99,27 @@ RUN npm install -g global-agent@3.0.0
 # Language server binaries for LSP plugins (real-time type checking on every edit)
 RUN npm install -g typescript-language-server typescript pyright
 RUN rustup component add rust-analyzer
+
+# Install nvm and multiple Node.js LTS versions for project-level use.
+# System Node 20 (NodeSource, /usr/bin/node) remains for MCP servers and global packages.
+# Claude can switch versions with: nvm use 20 | nvm use 22 | nvm use 24
+ENV NVM_DIR=/usr/local/nvm
+RUN mkdir -p "$NVM_DIR" \
+    && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash \
+    && . "$NVM_DIR/nvm.sh" \
+    && nvm install 20 \
+    && nvm install 22 \
+    && nvm install 24 \
+    && nvm alias default 24 \
+    && chmod -R 755 "$NVM_DIR"
+
+# Source nvm in all shells so Claude can use `nvm use <version>`
+# /etc/profile.d/ covers login shells; /etc/bash.bashrc covers interactive shells
+RUN printf '#!/bin/sh\nexport NVM_DIR=/usr/local/nvm\n[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"\n' \
+        > /etc/profile.d/nvm.sh \
+    && chmod +x /etc/profile.d/nvm.sh \
+    && printf '\n# nvm\nexport NVM_DIR=/usr/local/nvm\n[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"\n' \
+        >> /etc/bash.bashrc
 
 # Create a home directory that will be used at runtime
 # The actual UID will be set via --user at runtime, but we need the directory to exist
