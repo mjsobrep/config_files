@@ -27,7 +27,8 @@ antigen bundle docker-compose
 
 antigen bundle zsh-users/zsh-syntax-highlighting
 
-antigen theme denysdovhan/spaceship-prompt
+antigen theme spaceship-prompt/spaceship-prompt
+antigen bundle spaceship-prompt/spaceship-vi-mode@main
 
 antigen apply
 
@@ -256,5 +257,45 @@ export KUBECONFIG="$HOME/.kube/config"
 
 # GOLANG
 export PATH=$PATH:/usr/local/go/bin
+
+# configure spaceship - remove unused language/tool sections
+spaceship remove  hg
+spaceship remove  node
+spaceship remove  bun
+spaceship remove  deno
+spaceship remove  ruby
+spaceship remove  elm
+spaceship remove  elixir
+spaceship remove  xcode
+spaceship remove  swift
+spaceship remove  golang
+spaceship remove  perl
+spaceship remove  php
+spaceship remove  rust
+spaceship remove  haskell
+spaceship remove  scala
+spaceship remove  kotlin
+spaceship remove  java
+spaceship remove  lua
+spaceship remove  dart
+spaceship remove  julia
+spaceship remove  crystal
+spaceship remove  aws
+spaceship remove  gcloud
+spaceship remove  azure
+spaceship remove  conda
+spaceship remove  dotnet
+spaceship remove  ocaml
+spaceship remove  vlang
+spaceship remove  zig
+spaceship remove  purescript
+spaceship remove  erlang
+spaceship remove  kubectl
+spaceship remove  ansible
+spaceship remove  pulumi
+spaceship remove  ibmcloud
+spaceship remove  gnu_screen
+spaceship add --before char vi_mode
+eval spaceship_vi_mode_enable
 
 echo 'done loading zshrc'
