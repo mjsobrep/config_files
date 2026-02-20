@@ -549,11 +549,26 @@ fi
 # Tokens are stored in AUTH_DIR which is later mounted into Docker.
 if [[ "$AUTH_MODE" == "true" ]]; then
     ensure_auth_dir
+
+    # Pre-flight: check that host-side dependencies for MCP servers are available.
+    # workspace-mcp is needed for Google Workspace OAuth (browser callback flow).
+    if ! command -v workspace-mcp &>/dev/null; then
+        echo -e "${YELLOW}Warning: workspace-mcp not found on host${NC}"
+        echo -e "Google Workspace OAuth requires workspace-mcp installed locally."
+        echo -e "Install it with:"
+        echo ""
+        echo -e "  pipx install workspace-mcp==1.11.1"
+        echo ""
+        echo -e "(If you don't have pipx: brew install pipx && pipx ensurepath)"
+        echo ""
+    fi
+
     echo -e "${GREEN}Starting Claude on host for plugin authentication...${NC}"
     echo -e "${YELLOW}OAuth callbacks will work because Claude is running locally.${NC}"
     echo -e "${YELLOW}Auth dir: ${AUTH_DIR}${NC}"
     echo ""
-    echo "Authenticate your plugins (e.g. Slack, Linear), then exit with /exit."
+    echo "Authenticate your plugins (e.g. Slack, Linear, Google Workspace), then exit with /exit."
+    echo "For Google Workspace: ask Claude to read your Gmail or Calendar to trigger OAuth."
     echo "Next time you run claude-sandbox, the tokens will be available in Docker."
     echo ""
     CLAUDE_CONFIG_DIR="$AUTH_DIR" exec claude "${CLAUDE_ARGS[@]}"

@@ -110,6 +110,24 @@ if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
     echo ""
 fi
 
+# Install host-side dependencies for --auth mode
+# workspace-mcp must run on the host (not just in Docker) so OAuth browser callbacks work
+if command -v workspace-mcp &>/dev/null; then
+    echo -e "${GREEN}✓${NC} workspace-mcp already installed: $(which workspace-mcp)"
+elif command -v pipx &>/dev/null; then
+    echo -e "${YELLOW}Installing workspace-mcp (needed on host for Google Workspace OAuth)...${NC}"
+    pipx install workspace-mcp==1.11.1
+    echo -e "${GREEN}✓${NC} workspace-mcp installed via pipx"
+else
+    echo ""
+    echo -e "${YELLOW}Note:${NC} workspace-mcp is needed on the host for Google Workspace OAuth (--auth mode)."
+    echo "Install pipx first, then workspace-mcp:"
+    echo ""
+    echo "  brew install pipx && pipx ensurepath"
+    echo "  pipx install workspace-mcp==1.11.1"
+    echo ""
+fi
+
 echo ""
 echo -e "${GREEN}Done!${NC}"
 echo ""
@@ -117,3 +135,4 @@ echo "Next steps:"
 echo "  1. Build sandbox image: claude-sandbox --build"
 echo "  2. For AI tool MCP (Codex/Gemini), authenticate on host:"
 echo "     codex login && gemini auth login"
+echo "  3. For Google Workspace OAuth, run: claude-sandbox --auth"

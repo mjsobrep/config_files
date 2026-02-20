@@ -4,6 +4,7 @@
 # Plugin installation also routes through Anthropic infrastructure.
 .anthropic.com
 .claude.ai
+.claude.com
 
 # === MCP Plugin Endpoints (vendor-hosted remote MCP) ===
 # These are the SSE endpoints that Claude Code plugins connect to.
