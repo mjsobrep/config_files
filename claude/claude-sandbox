@@ -121,13 +121,16 @@ ensure_auth_dir() {
         mkdir -p "$AUTH_DIR"
     fi
 
-    # Ensure settings.json has bypassPermissions mode and read-only deny list
+    # Ensure settings.json has read-only deny list.
+    # Bypass permissions is NOT set here -- it's passed as a CLI flag only in
+    # Docker sandbox mode. Auth mode uses normal interactive permissions so the
+    # user can review what Claude does on the host.
     # Claude Code may create/modify this file when you approve commands,
     # so we need to update it in place rather than overwrite it
     # Deny list last audited: 2026-02-19. Re-audit write tools after plugin updates.
     local settings_file="$AUTH_DIR/settings.json"
     if [[ ! -f "$settings_file" ]]; then
-        echo -e "${YELLOW}Creating settings with bypass permissions and read-only deny list...${NC}"
+        echo -e "${YELLOW}Creating settings with read-only deny list...${NC}"
         cat > "$settings_file" <<'SETTINGS'
 {
   "permissions": {
@@ -177,13 +180,12 @@ ensure_auth_dir() {
       "mcp__pylon__pylon_delete_tag",
       "mcp__pylon__pylon_create_team",
       "mcp__pylon__pylon_update_team"
-    ],
-    "defaultMode": "bypassPermissions"
+    ]
   }
 }
 SETTINGS
     else
-        echo -e "${YELLOW}Updating settings: bypass permissions + read-only deny list...${NC}"
+        echo -e "${YELLOW}Updating settings: read-only deny list...${NC}"
         # Use python to safely merge JSON (preserves existing allow list and custom deny entries)
         python3 -c "
 import json, sys
@@ -196,7 +198,11 @@ except (json.JSONDecodeError, ValueError):
     settings = {}
 if 'permissions' not in settings:
     settings['permissions'] = {}
-settings['permissions']['defaultMode'] = 'bypassPermissions'
+
+# Remove bypassPermissions if previously set -- bypass is now a CLI flag
+# passed only in Docker sandbox mode, not stored in settings.json.
+if settings['permissions'].get('defaultMode') == 'bypassPermissions':
+    del settings['permissions']['defaultMode']
 
 # Required deny list for read-only integrations
 required_deny = [
@@ -265,92 +271,84 @@ with open(settings_file, 'w') as f:
 " "$settings_file"
     fi
 
-    # Ensure MCP config has required servers (official implementations only)
-    # External services (GitHub, Slack, Linear, Notion) are handled by plugins
-    # Merges into existing config, preserving user-added servers
-    local mcp_file="$AUTH_DIR/mcp.json"
-    local added
-    added=$(python3 - "$mcp_file" << 'PYTHON'
-import json
-import sys
+    # Register MCP servers in .claude.json (the file Claude Code actually reads).
+    # Claude Code ignores mcp.json -- it reads MCP servers from the top-level
+    # "mcpServers" key in $CLAUDE_CONFIG_DIR/.claude.json (user scope).
+    #
+    # Env vars use ${VAR} syntax which Claude Code expands from its own process.env
+    # before passing to MCP subprocesses. This lets the same config work in both
+    # auth mode (host exports) and Docker mode (-e flags) with different values.
+    #
+    # Claude Code's MCP SDK only passes HOME, LOGNAME, PATH, SHELL, TERM, USER
+    # from parent env to subprocesses -- all other env vars MUST be in this env block.
+    local claude_json="$AUTH_DIR/.claude.json"
+    python3 -c "
+import json, sys
 
-mcp_file = sys.argv[1]
+claude_json_file = sys.argv[1]
+try:
+    with open(claude_json_file, 'r') as f:
+        state = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    state = {}
 
-# MCP servers for sandbox (official implementations only)
-# Most external services are handled by Claude Code plugins instead
-required_servers = {
-    # AI tool integrations (credentials mounted from host)
-    'codex': {
-        'command': 'codex-mcp-server',
-        'args': [],
-        'env': {}
-    },
-    'gemini': {
-        'command': 'gemini-mcp',
-        'args': [],
-        'env': {}
-    },
-    # Browser automation (sandbox-specific flags for headless Docker)
-    'playwright': {
-        'command': 'npx',
-        'args': ['@playwright/mcp@latest', '--browser', 'chromium', '--headless', '--no-sandbox', '--isolated'],
-        'env': {}
-    },
-    # Google Workspace (read-only: --read-only requests only *.readonly OAuth scopes)
+required_mcp = {
+    # Google Workspace (read-only OAuth scopes, single-user stdio mode)
     'google-workspace': {
         'command': 'workspace-mcp',
-        'args': ['--read-only', '--tools', 'gmail', 'drive', 'calendar', 'docs'],
-        'env': {}
+        'args': ['--read-only', '--single-user', '--tools', 'gmail', 'drive', 'calendar', 'docs'],
+        'env': {
+            'GOOGLE_OAUTH_CLIENT_ID': '\${GOOGLE_OAUTH_CLIENT_ID:-}',
+            'GOOGLE_OAUTH_CLIENT_SECRET': '\${GOOGLE_OAUTH_CLIENT_SECRET:-}',
+            'WORKSPACE_MCP_CREDENTIALS_DIR': '\${WORKSPACE_MCP_CREDENTIALS_DIR:-}',
+            'OAUTHLIB_INSECURE_TRANSPORT': '1',
+        },
     },
-    # Pylon customer support (read-only: write tools blocked by deny list)
+    # Browser automation (headless Docker; fails silently on host -- that's fine)
+    'playwright': {
+        'command': 'node',
+        'args': ['/usr/lib/node_modules/@playwright/mcp/cli.js', '--browser', 'chromium', '--headless', '--no-sandbox', '--isolated'],
+        'env': {},
+    },
+    # Pylon customer support (write tools blocked by deny list in settings.json)
     'pylon': {
         'command': 'pylon-mcp',
         'args': [],
-        'env': {}
-    }
+        'env': {
+            'PYLON_API_TOKEN': '\${PYLON_API_TOKEN:-}',
+        },
+    },
 }
 
-# Load existing config or create new
-try:
-    with open(mcp_file, 'r') as f:
-        config = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError):
-    config = {}
-
-if 'mcpServers' not in config:
-    config['mcpServers'] = {}
-
-# Remove stale entries (replaced by plugins or no longer used)
-# Slack, Linear, Notion: handled by Claude.ai plugins, not local MCP servers.
-#   Local MCP versions used third-party packages whose tools could bypass the
-#   deny list (deny list only blocks mcp__claude_ai_* prefixed tool names).
-# GitHub: github-mcp-server binary was never installed; gh CLI is used instead.
-# google-calendar, gmail: replaced by google-workspace with --read-only flag.
-#   These used third-party packages with no read-only enforcement.
-stale_servers = ['gdrive', 'slack', 'linear', 'notion', 'github', 'google-calendar', 'gmail']
 changed = False
-for name in stale_servers:
-    if name in config['mcpServers']:
-        del config['mcpServers'][name]
+if 'mcpServers' not in state:
+    state['mcpServers'] = {}
+    changed = True
+
+added = []
+for name, config in required_mcp.items():
+    if state['mcpServers'].get(name) != config:
+        state['mcpServers'][name] = config
+        added.append(name)
         changed = True
 
-# Add or update required servers (overwrite to fix drifted configs)
-added = []
-for name, server in required_servers.items():
-    if config['mcpServers'].get(name) != server:
-        config['mcpServers'][name] = server
-        added.append(name)
+# Remove stale servers that are no longer used
+stale = ['codex', 'gemini']
+for name in stale:
+    if name in state['mcpServers']:
+        del state['mcpServers'][name]
+        changed = True
 
-# Write back if changes were made
-if added or changed:
-    with open(mcp_file, 'w') as f:
-        json.dump(config, f, indent=2)
+if changed:
+    with open(claude_json_file, 'w') as f:
+        json.dump(state, f, indent=2)
+
+if added:
     print(', '.join(added))
-PYTHON
-)
+" "$claude_json"
 
-    if [[ -n "$added" ]]; then
-        echo -e "${YELLOW}Added MCP servers: ${added}${NC}"
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}MCP servers registered in .claude.json${NC}"
     fi
 
     # Sync CLAUDE.md (user-level instructions) from repo into auth dir
@@ -563,6 +561,28 @@ if [[ "$AUTH_MODE" == "true" ]]; then
         echo ""
     fi
 
+    # Map CLAUDE_SANDBOX_* env vars so MCP servers can find credentials.
+    # In Docker mode these are passed via -e flags; in auth mode we export
+    # them here so child processes (workspace-mcp, etc.) inherit them.
+    if [[ -n "${CLAUDE_SANDBOX_GOOGLE_CLIENT_ID:-}" && -n "${CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET:-}" ]]; then
+        export GOOGLE_OAUTH_CLIENT_ID="$CLAUDE_SANDBOX_GOOGLE_CLIENT_ID"
+        export GOOGLE_OAUTH_CLIENT_SECRET="$CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET"
+        echo -e "${GREEN}Google Workspace OAuth: credentials available (from CLAUDE_SANDBOX_GOOGLE_*)${NC}"
+    else
+        echo -e "${YELLOW}Warning: CLAUDE_SANDBOX_GOOGLE_CLIENT_ID and/or CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET not set${NC}"
+        echo -e "Google Workspace OAuth requires these env vars. Set them and re-run."
+    fi
+
+    # Store workspace-mcp tokens inside the auth dir so they persist and
+    # are available when mounted into Docker later.
+    export WORKSPACE_MCP_CREDENTIALS_DIR="$AUTH_DIR/.google-workspace-mcp"
+    mkdir -p "$WORKSPACE_MCP_CREDENTIALS_DIR"
+
+    if [[ -n "${CLAUDE_SANDBOX_PYLON_API_TOKEN:-}" ]]; then
+        export PYLON_API_TOKEN="$CLAUDE_SANDBOX_PYLON_API_TOKEN"
+        echo -e "${GREEN}Pylon API: available (from CLAUDE_SANDBOX_PYLON_API_TOKEN)${NC}"
+    fi
+
     echo -e "${GREEN}Starting Claude on host for plugin authentication...${NC}"
     echo -e "${YELLOW}OAuth callbacks will work because Claude is running locally.${NC}"
     echo -e "${YELLOW}Auth dir: ${AUTH_DIR}${NC}"
@@ -594,6 +614,13 @@ elif [[ "$START_SHELL" == "true" ]]; then
     CMD="bash"
 else
     CMD="claude"
+fi
+
+# Bypass permissions in Docker sandbox mode (auth mode uses interactive permissions).
+# This is a CLI flag rather than a settings.json value so that --auth mode
+# (which shares the same settings.json) gets normal interactive permissions.
+if [[ "$CMD" == "claude" ]]; then
+    CLAUDE_ARGS=("--dangerously-skip-permissions" "${CLAUDE_ARGS[@]}")
 fi
 
 echo -e "${GREEN}Starting sandbox in: $(pwd)${NC}"
@@ -663,6 +690,9 @@ if [[ -n "${CLAUDE_SANDBOX_GOOGLE_CLIENT_ID:-}" && -n "${CLAUDE_SANDBOX_GOOGLE_C
     ENV_ARGS+=(-e "GOOGLE_OAUTH_CLIENT_ID=$CLAUDE_SANDBOX_GOOGLE_CLIENT_ID" -e "GOOGLE_OAUTH_CLIENT_SECRET=$CLAUDE_SANDBOX_GOOGLE_CLIENT_SECRET")
     echo -e "${GREEN}Google Workspace OAuth: available (from CLAUDE_SANDBOX_GOOGLE_*)${NC}"
 fi
+# Point workspace-mcp at credentials stored in the auth dir (written during --auth).
+# The auth dir is mounted at /home/sandbox/.claude inside Docker.
+ENV_ARGS+=(-e "WORKSPACE_MCP_CREDENTIALS_DIR=/home/sandbox/.claude/.google-workspace-mcp")
 
 if [[ -n "${CLAUDE_SANDBOX_PYLON_API_TOKEN:-}" ]]; then
     ENV_ARGS+=(-e "PYLON_API_TOKEN=$CLAUDE_SANDBOX_PYLON_API_TOKEN")
@@ -686,10 +716,11 @@ if [[ -d "$HOME/.gemini" ]]; then
     echo -e "${GREEN}Gemini credentials: mounted from ~/.gemini${NC}"
 fi
 
-# Google Workspace MCP token persistence (read-write: server needs to write/refresh tokens)
-GOOGLE_WS_DIR="$AUTH_DIR/.google-workspace-mcp"
-mkdir -p "$GOOGLE_WS_DIR"
-CRED_ARGS+=(-v "$GOOGLE_WS_DIR:/home/sandbox/.google-workspace-mcp")
+# Google Workspace MCP tokens are stored in $AUTH_DIR/.google-workspace-mcp
+# (written during --auth, read in Docker). The auth dir is already mounted
+# at /home/sandbox/.claude, so no separate mount is needed -- just ensure
+# the directory exists.
+mkdir -p "$AUTH_DIR/.google-workspace-mcp"
 
 # Egress filtering setup
 NETWORK_ARGS=()
